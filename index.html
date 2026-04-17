@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; worker-src blob:; connect-src 'self'"
+    />
+    <title>NAVigator — Mutual Fund XIRR Dashboard</title>
+    <link rel="icon" type="image/svg+xml" href="/navigator/assets/favicon-CNf61Q2t.svg" />
+    <style>
+      /* Prevent FOUC before CSS loads */
+      body {
+        visibility: hidden;
+      }
+      .upload-card-icon,
+      .cas-guide__toggle svg {
+        visibility: hidden;
+      }
+    </style>
+    <script type="module" crossorigin src="/navigator/assets/index-DX4e4vwp.js"></script>
+    <link rel="stylesheet" crossorigin href="/navigator/assets/index-BPK5_EFr.css">
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header role="banner">
+      <div class="header-inner">
+        <h1>NAVigator</h1>
+        <p>
+          Your mutual fund XIRR dashboard. Entirely in your browser. Your data is never uploaded or
+          stored.
+        </p>
+      </div>
+    </header>
+
+    <main id="main-content">
+      <!-- Upload View -->
+      <section id="upload-view" aria-label="Upload your CAS statement">
+        <details class="cas-guide">
+          <summary
+            class="cas-guide__toggle"
+            aria-label="How to download your CAS from CAMS — click to expand"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+              />
+            </svg>
+            How to download your CAS from CAMS
+          </summary>
+          <ol class="cas-guide__steps">
+            <li>
+              Go to
+              <a
+                href="https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement"
+                target="_blank"
+                rel="noopener noreferrer"
+                >camsonline.com → Statements → Consolidated Account Statement</a
+              >
+            </li>
+            <li>
+              Under <strong>Statement Type</strong>, select <strong>Detailed</strong> (includes
+              transaction listing)
+            </li>
+            <li>
+              Under <strong>Period</strong>, select <strong>Specific Period</strong> and choose your
+              full investment date range
+            </li>
+            <li>
+              Under <strong>Folio Listing</strong>, select
+              <strong>Transacted folios and folios with balance</strong>
+            </li>
+            <li>
+              Enter your email and PAN, then click <strong>Submit</strong> — the PDF will arrive in
+              your inbox
+            </li>
+          </ol>
+        </details>
+
+        <form class="upload-card" aria-label="Analyse CAS statement" novalidate>
+          <div class="upload-card-header">
+            <div class="upload-card-icon" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.75"
+                stroke="currentColor"
+                focusable="false"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                />
+              </svg>
+            </div>
+            <h2>Analyse your CAS statement</h2>
+            <p>Upload your CAMS or KFintech PDF to calculate XIRR across all your funds.</p>
+          </div>
+
+          <div class="form-field">
+            <label for="pdf-input">Consolidated Account Statement (PDF)</label>
+            <input type="file" accept=".pdf" id="pdf-input" aria-describedby="pdf-input-hint" />
+            <span id="pdf-input-hint" class="field-hint">Only PDF files are supported</span>
+          </div>
+
+          <div class="form-field">
+            <label for="pdf-password">PDF Password</label>
+            <input
+              type="password"
+              id="pdf-password"
+              autocomplete="current-password"
+              placeholder="Leave blank if not password-protected"
+              aria-describedby="pdf-password-hint"
+            />
+          </div>
+
+          <button id="analyse-btn" type="submit" aria-live="polite">Calculate XIRR</button>
+        </form>
+
+        <div id="status-bar" hidden role="status" aria-live="polite" aria-atomic="true">
+          <span class="status-spinner" aria-hidden="true"></span>
+          <span id="status-text"></span>
+        </div>
+      </section>
+
+      <!-- Dashboard View -->
+      <section id="dashboard-view" hidden aria-label="Portfolio dashboard">
+        <div class="dashboard-header">
+          <div>
+            <h2 class="dashboard-title">Portfolio Overview</h2>
+            <p class="dashboard-period" id="dashboard-period" aria-live="polite"></p>
+          </div>
+          <button id="back-btn" type="button" aria-label="Go back and analyse another PDF">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+              />
+            </svg>
+            Analyse Another PDF
+          </button>
+        </div>
+
+        <h3 class="section-heading">Summary</h3>
+        <div class="stat-cards-grid" role="list" aria-label="Portfolio summary statistics">
+          <div class="stat-card" id="card-invested" role="listitem">
+            <span class="stat-card__label">Total Invested</span>
+            <span class="stat-card__value" aria-live="polite"></span>
+          </div>
+          <div class="stat-card" id="card-current" role="listitem">
+            <span class="stat-card__label">Current Value</span>
+            <span class="stat-card__value" aria-live="polite"></span>
+          </div>
+          <div class="stat-card" id="card-xirr" role="listitem">
+            <span class="stat-card__label">Overall XIRR (p.a.)</span>
+            <span class="stat-card__value" aria-live="polite"></span>
+            <span class="stat-card__sub" aria-live="polite"></span>
+          </div>
+          <div class="stat-card" id="card-gainloss" role="listitem">
+            <span class="stat-card__label">Gain / Loss</span>
+            <span class="stat-card__value" aria-live="polite"></span>
+            <span class="stat-card__sub" aria-live="polite"></span>
+          </div>
+        </div>
+
+        <h3 class="section-heading">Allocation</h3>
+        <div class="charts-row">
+          <div class="chart-panel" id="allocation-chart-panel">
+            <h4 class="chart-panel__title">Portfolio Allocation</h4>
+            <canvas
+              id="allocation-chart"
+              role="img"
+              aria-label="Portfolio allocation chart"
+            ></canvas>
+            <ul id="allocation-legend" class="chart-legend" aria-label="Chart legend"></ul>
+          </div>
+        </div>
+
+        <div class="breakdown-header">
+          <h3 class="section-heading" style="margin-bottom: 0">Fund Breakdown</h3>
+          <button
+            id="sort-btn"
+            class="sort-btn"
+            type="button"
+            data-order="desc"
+            aria-label="Currently sorted high to low — click to sort low to high"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12"
+              />
+            </svg>
+            XIRR: High to Low
+          </button>
+        </div>
+        <div id="portfolio-grid" role="list" aria-label="Fund breakdown"></div>
+      </section>
+    </main>
+
+    <footer role="contentinfo">
+      <div class="footer-inner">
+        <p class="footer-copyright">© 2026 Anurag A S. All rights reserved.</p>
+        <p class="footer-disclaimer">
+          NAVigator is an independent, open-source tool and is not affiliated with, endorsed by, or
+          connected to CAMS, KFintech, AMFI, or any asset management company. All trademarks,
+          service marks, and fund names belong to their respective owners. XIRR calculations are for
+          informational purposes only and do not constitute financial advice.
+        </p>
+        <p class="footer-privacy">
+          Your data never leaves your browser. No PDF, password, or financial information is
+          transmitted to any server.
+        </p>
+      </div>
+    </footer>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+      integrity="sha512-k72Y+sws0148dhTBT8Nyro04RwjANbBxNCZ80xKT3FdHNON55/us15Ju0YQ2dD0uzyBJ5YjXnbUcLWaCaw3rCg=="
+      crossorigin="anonymous"
+    ></script>
+
+  </body>
+</html>
