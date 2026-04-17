@@ -14,7 +14,6 @@ export function formatPct(rate: number): string {
 }
 
 export function formatGainLoss(amount: number): string {
-  // Normalise -0 → 0: Intl.NumberFormat renders -0 as "-₹0.00"
-  const normalised = amount === 0 ? 0 : amount
-  return normalised > 0 ? `+${formatINR(normalised)}` : formatINR(normalised)
+  const n = amount === 0 ? 0 : amount
+  return n > 0 ? `+${formatINR(n)}` : formatINR(n)
 }

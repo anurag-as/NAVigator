@@ -13,12 +13,12 @@ export function validateCashFlows(cashFlows: CashFlow[]): void {
   }
   if (!cashFlows.some((cf) => cf.amount < 0)) {
     throw new XIRRInsufficientDataError(
-      'Cash flow series must contain at least one negative cash flow (outflow/purchase).',
+      'Cash flow series must contain at least one negative cash flow.',
     )
   }
   if (!cashFlows.some((cf) => cf.amount > 0)) {
     throw new XIRRInsufficientDataError(
-      'Cash flow series must contain at least one positive cash flow (inflow/redemption).',
+      'Cash flow series must contain at least one positive cash flow.',
     )
   }
 }
@@ -48,16 +48,6 @@ function newtonRaphson(cashFlows: CashFlow[], guess: number): number | null {
   return null
 }
 
-/**
- * Computes XIRR for a series of dated cash flows using Newton-Raphson.
- * Retries with guesses -0.5 and 0.5 if the initial guess does not converge.
- *
- * @param cashFlows - must contain ≥1 negative and ≥1 positive cash flow
- * @param guess     - initial rate estimate (default 0.1)
- * @returns XIRR as a decimal (e.g. 0.1432 for 14.32%)
- * @throws {XIRRInsufficientDataError} if the series is invalid
- * @throws {XIRRConvergenceError}      if the algorithm does not converge with any guess
- */
 export function computeXIRR(cashFlows: CashFlow[], guess = 0.1): number {
   validateCashFlows(cashFlows)
   for (const g of [guess, -0.5, 0.5]) {
@@ -69,13 +59,6 @@ export function computeXIRR(cashFlows: CashFlow[], guess = 0.1): number {
   )
 }
 
-/**
- * Computes the overall XIRR by merging all portfolio cash flow series into
- * a single flat array sorted by date ascending, then calling computeXIRR.
- *
- * @throws {XIRRInsufficientDataError} if the merged series is invalid
- * @throws {XIRRConvergenceError}      if the algorithm does not converge
- */
 export function computeOverallXIRR(portfolios: PortfolioResult[]): number {
   const merged: CashFlow[] = portfolios
     .flatMap((p) => p.cashFlowSeries.cashFlows)
@@ -83,10 +66,6 @@ export function computeOverallXIRR(portfolios: PortfolioResult[]): number {
   return computeXIRR(merged)
 }
 
-/**
- * Evaluates the NPV of a cash flow series at a given rate.
- * Exported for use in tests to verify XIRR correctness.
- */
 export function evaluateNPV(cashFlows: CashFlow[], rate: number): number {
   return npvAndDerivative(cashFlows, rate).f
 }
