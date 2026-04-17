@@ -1,9 +1,8 @@
 import { PDFLoadError, PDFPasswordError } from './types'
 
-/** Raw text extracted from a single PDF page. */
 export interface RawPage {
   pageNumber: number
-  lines: string[] // text items joined into logical lines
+  lines: string[]
 }
 
 // pdf.js is loaded from CDN as an ambient global — do not npm install it

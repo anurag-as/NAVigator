@@ -36,6 +36,7 @@ export interface Scheme {
   valuationNAV: number
   valuationValue: number
   closingUnits: number
+  totalCostValue: number
 }
 
 export interface ParsedStatement {
