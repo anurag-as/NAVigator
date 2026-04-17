@@ -1,8 +1,30 @@
 import type { XIRRResult } from '../core/types'
 
+interface ChartDataset {
+  data: number[]
+  backgroundColor: string[]
+  borderWidth: number
+}
+
+interface ChartData {
+  labels: string[]
+  datasets: ChartDataset[]
+}
+
+interface ChartOptions {
+  animation: { duration: number }
+  responsive: boolean
+  plugins: { legend: { display: boolean } }
+}
+
+interface ChartConfig {
+  type: string
+  data: ChartData
+  options: ChartOptions
+}
+
 declare const Chart: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  new (...args: any[]): { destroy(): void }
+  new (canvas: HTMLCanvasElement, config: ChartConfig): { destroy(): void }
 }
 
 type ChartInstance = InstanceType<typeof Chart>

@@ -159,7 +159,6 @@ function handleBack(): void {
 
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelector('.upload-card')?.addEventListener('submit', handleAnalyse)
-  document.getElementById('analyse-btn')?.addEventListener('click', handleAnalyse)
   document.getElementById('back-btn')?.addEventListener('click', handleBack)
 
   document.addEventListener('keydown', (e: KeyboardEvent) => {

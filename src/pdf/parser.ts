@@ -86,13 +86,7 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
   for (const tx of scheme.transactions) {
     const txTime = new Date(tx.date).getTime()
 
-    // Exclude any transaction on or after the valuation date — the valuation
-    // already reflects those units/NAV, so including them would double-count.
-    if (txTime >= valuationTime) {
-      console.debug(
-        `[NAVigator] Skipping transaction on/after valuation date ` +
-          `(${tx.date} ${tx.description} ₹${tx.amount}) for "${scheme.name}".`,
-      )
+    if (txTime > valuationTime) {
       continue
     }
 
@@ -101,17 +95,9 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
     } else if (POSITIVE_TYPES.has(tx.type)) {
       cashFlows.push({ date: new Date(tx.date), amount: Math.abs(tx.amount) })
     } else if (tx.type === TransactionType.DIVIDEND_REINVESTMENT) {
-      // Dividend reinvestments are excluded from XIRR cash flows: the reinvested
-      // amount stays in the fund and is already reflected in the closing NAV/units,
-      // so counting it as both an inflow and an outflow would double-count it.
-    } else {
-      // MISC and any future unrecognised types are excluded. Log a warning so
-      // misclassified transactions (e.g. bonus units, mergers) are not silently lost.
-      console.warn(
-        `[NAVigator] Excluding unrecognised transaction type "${tx.type}" ` +
-          `(${tx.date} ${tx.description} ₹${tx.amount}) from XIRR cash flows for "${scheme.name}".`,
-      )
+      // Excluded: reinvested amount is already reflected in closing NAV/units.
     }
+    // MISC and unrecognised types are excluded from XIRR cash flows.
   }
 
   if (scheme.valuationValue > 0) {
@@ -151,7 +137,7 @@ function extractISIN(line: string): string | null {
  * Parses a CAMS/KFintech Consolidated Account Statement (CAS) from extracted
  * PDF pages and returns a structured `ParsedStatement`.
  *
- * @throws {ParseError} if no portfolio or transaction data can be identified
+ * @throws {ParseError} if no portfolio data can be identified
  */
 export function parseCASStatement(pages: RawPage[]): ParsedStatement {
   const allLines: string[] = pages.flatMap((p) => p.lines)
@@ -189,7 +175,6 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
   }
 
   // If neither extraction path found a name, leave it as an empty string.
-  // Downstream consumers treat an empty investorName as "unknown" gracefully.
 
   const schemes: Scheme[] = []
   let inScheme = false

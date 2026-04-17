@@ -3,20 +3,40 @@ import { PDFLoadError, PDFPasswordError } from '../core/types'
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs'
 const WORKER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PdfjsLib = any
+interface PdfjsTextItem {
+  str: string
+  transform: number[]
+}
+
+interface PdfjsTextContent {
+  items: PdfjsTextItem[]
+}
+
+interface PdfjsPage {
+  getTextContent(): Promise<PdfjsTextContent>
+}
+
+interface PdfjsDocument {
+  numPages: number
+  getPage(pageNum: number): Promise<PdfjsPage>
+}
+
+interface PdfjsLib {
+  GlobalWorkerOptions: { workerSrc: string }
+  getDocument(params: { data: ArrayBuffer; password: string }): { promise: Promise<PdfjsDocument> }
+}
 
 let pdfjsPromise: Promise<PdfjsLib> | null = null
 
 function getPdfjs(): Promise<PdfjsLib> {
   if (!pdfjsPromise) {
     pdfjsPromise = import(/* @vite-ignore */ PDFJS_CDN)
-      .then((mod) => {
-        const lib: PdfjsLib = mod.default ?? mod
+      .then((mod: { default?: PdfjsLib } & PdfjsLib) => {
+        const lib = (mod.default ?? mod) as PdfjsLib
         lib.GlobalWorkerOptions.workerSrc = WORKER_CDN
         return lib
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         pdfjsPromise = null
         throw err
       })
@@ -37,8 +57,7 @@ interface LineGroup {
 export async function loadAndExtract(buffer: ArrayBuffer, password: string): Promise<RawPage[]> {
   const pdfjsLib = await getPdfjs()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let pdfDocument: any
+  let pdfDocument: PdfjsDocument
 
   try {
     const loadingTask = pdfjsLib.getDocument({ data: buffer, password })
@@ -70,8 +89,7 @@ export async function loadAndExtract(buffer: ArrayBuffer, password: string): Pro
   return pages
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function groupItemsIntoLines(items: any[]): string[] {
+export function groupItemsIntoLines(items: PdfjsTextItem[]): string[] {
   if (items.length === 0) return []
 
   const Y_TOLERANCE = 2
@@ -81,8 +99,8 @@ export function groupItemsIntoLines(items: any[]): string[] {
     const str: string = typeof item.str === 'string' ? item.str : ''
     if (!str.trim()) continue
 
-    const y: number = item.transform[5] as number
-    const x: number = item.transform[4] as number
+    const y: number = item.transform[5]
+    const x: number = item.transform[4]
 
     const group = lineGroups.find((g) => Math.abs(g.y - y) <= Y_TOLERANCE)
 
