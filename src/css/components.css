@@ -1,6 +1,22 @@
-/* ════════════════════════════════════════════
-   UPLOAD VIEW
-   ════════════════════════════════════════════ */
+/* ── Skip link ── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  background: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  z-index: 100;
+  transition: top var(--transition-fast);
+}
+
+.skip-link:focus {
+  top: var(--space-4);
+}
 
 #upload-view {
   display: flex;
@@ -38,6 +54,7 @@
   justify-content: center;
   margin: 0 auto var(--space-4);
   color: var(--color-brand-primary);
+  visibility: visible;
 }
 
 .upload-card-icon svg {
@@ -119,6 +136,12 @@
 }
 
 /* ── Primary button ── */
+.field-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-top: calc(var(--space-1) * -1);
+}
+
 #analyse-btn {
   width: 100%;
   min-height: var(--min-touch-target);
@@ -197,11 +220,6 @@
   display: none;
 }
 
-/* ════════════════════════════════════════════
-   DASHBOARD VIEW
-   ════════════════════════════════════════════ */
-
-/* ── Dashboard header row ── */
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -345,6 +363,8 @@
   display: flex;
   flex-direction: column;
   min-height: 320px;
+  max-width: 560px;
+  margin: 0 auto;
 }
 
 .chart-panel__title {
@@ -357,6 +377,54 @@
 
 .chart-panel canvas {
   flex: 1;
+}
+
+.chart-legend {
+  list-style: none;
+  margin-top: var(--space-4);
+  max-height: 120px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-right: var(--space-1);
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.chart-legend::-webkit-scrollbar {
+  width: 4px;
+}
+
+.chart-legend::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chart-legend::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+}
+
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.chart-legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.chart-legend__label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Portfolio cards ── */
@@ -575,10 +643,8 @@
   border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  text-align: center;
+  line-height: 20px;
 }
 
 .cas-guide__steps a {

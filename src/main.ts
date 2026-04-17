@@ -15,7 +15,7 @@ function setStatus(message: string): void {
   const statusText = document.getElementById('status-text')
   if (!statusBar) return
   if (statusText) statusText.textContent = message
-  statusBar.classList.remove('status-bar--error', 'status-bar--hidden')
+  statusBar.classList.remove('status-bar--error')
   statusBar.removeAttribute('hidden')
 }
 
@@ -28,90 +28,109 @@ function clearStatus(): void {
   statusBar.classList.remove('status-bar--error')
 }
 
+function setBusy(busy: boolean): void {
+  const btn = document.getElementById('analyse-btn')
+  if (!btn) return
+  if (busy) {
+    btn.setAttribute('aria-busy', 'true')
+    btn.setAttribute('disabled', '')
+  } else {
+    btn.removeAttribute('aria-busy')
+    btn.removeAttribute('disabled')
+  }
+}
+
 async function runPipeline(file: File, password: string): Promise<void> {
-  setStatus('Opening PDF…')
-  const buffer = await file.arrayBuffer()
+  setBusy(true)
+  try {
+    setStatus('Opening PDF…')
+    const buffer = await file.arrayBuffer()
 
-  setStatus('Extracting data…')
-  const pages = await loadAndExtract(buffer, password)
+    setStatus('Extracting data…')
+    const pages = await loadAndExtract(buffer, password)
+    const statement = parseCASStatement(pages)
 
-  const statement = parseCASStatement(pages)
+    setStatus('Calculating returns…')
 
-  setStatus('Calculating returns…')
+    const portfolioResults: PortfolioResult[] = []
 
-  const portfolioResults: PortfolioResult[] = []
+    for (const scheme of statement.schemes) {
+      const cashFlowSeries = buildCashFlowSeries(scheme)
 
-  for (const scheme of statement.schemes) {
-    const cashFlowSeries = buildCashFlowSeries(scheme)
+      const totalInvested =
+        scheme.totalCostValue > 0
+          ? scheme.totalCostValue
+          : cashFlowSeries.cashFlows
+              .filter((cf) => cf.amount < 0)
+              .reduce((sum, cf) => sum + Math.abs(cf.amount), 0)
 
-    const totalInvested =
-      scheme.totalCostValue > 0
-        ? scheme.totalCostValue
-        : cashFlowSeries.cashFlows
-            .filter((cf) => cf.amount < 0)
-            .reduce((sum, cf) => sum + Math.abs(cf.amount), 0)
+      const currentValue = scheme.valuationValue
 
-    const currentValue = scheme.valuationValue
+      let xirr: number | null = null
+      let xirrError: string | null = null
 
-    let xirr: number | null = null
-    let xirrError: string | null = null
+      try {
+        xirr = computeXIRR(cashFlowSeries.cashFlows)
+      } catch (err: unknown) {
+        xirrError = classifyError(err)
+      }
+
+      portfolioResults.push({
+        cashFlowSeries,
+        xirrResult: {
+          schemeId: scheme.name,
+          schemeName: scheme.name,
+          totalInvested,
+          currentValue,
+          gainLoss: currentValue - totalInvested,
+          xirr,
+          xirrError,
+        },
+      })
+    }
+
+    let overallXirr: number | null = null
+    let overallXirrError: string | null = null
 
     try {
-      xirr = computeXIRR(cashFlowSeries.cashFlows)
+      overallXirr = computeOverallXIRR(portfolioResults)
     } catch (err: unknown) {
-      xirrError = classifyError(err)
+      overallXirrError = classifyError(err)
     }
 
-    const xirrResult: XIRRResult = {
-      schemeId: scheme.name,
-      schemeName: scheme.name,
-      totalInvested,
-      currentValue,
-      gainLoss: currentValue - totalInvested,
-      xirr,
-      xirrError,
+    const overallTotalInvested = portfolioResults.reduce(
+      (sum, p) => sum + p.xirrResult.totalInvested,
+      0,
+    )
+    const overallCurrentValue = portfolioResults.reduce(
+      (sum, p) => sum + p.xirrResult.currentValue,
+      0,
+    )
+
+    const overall: XIRRResult = {
+      schemeId: '__overall__',
+      schemeName: 'Overall Portfolio',
+      totalInvested: overallTotalInvested,
+      currentValue: overallCurrentValue,
+      gainLoss: overallCurrentValue - overallTotalInvested,
+      xirr: overallXirr,
+      xirrError: overallXirrError,
     }
 
-    portfolioResults.push({ cashFlowSeries, xirrResult })
-  }
+    const dashboardData: DashboardData = {
+      portfolios: portfolioResults.map((p) => p.xirrResult),
+      overall,
+      statementPeriod: statement.statementPeriod,
+    }
 
-  let overallXirr: number | null = null
-  let overallXirrError: string | null = null
-
-  try {
-    overallXirr = computeOverallXIRR(portfolioResults)
+    clearStatus()
+    renderDashboard(dashboardData)
+    showDashboard()
   } catch (err: unknown) {
-    overallXirrError = classifyError(err)
+    showStatusError(classifyError(err))
+  } finally {
+    setBusy(false)
   }
-
-  const overallTotalInvested = portfolioResults.reduce(
-    (sum, p) => sum + p.xirrResult.totalInvested,
-    0,
-  )
-  const overallCurrentValue = portfolioResults.reduce(
-    (sum, p) => sum + p.xirrResult.currentValue,
-    0,
-  )
-
-  const overall: XIRRResult = {
-    schemeId: '__overall__',
-    schemeName: 'Overall Portfolio',
-    totalInvested: overallTotalInvested,
-    currentValue: overallCurrentValue,
-    gainLoss: overallCurrentValue - overallTotalInvested,
-    xirr: overallXirr,
-    xirrError: overallXirrError,
-  }
-
-  const dashboardData: DashboardData = {
-    portfolios: portfolioResults.map((p) => p.xirrResult),
-    overall,
-    statementPeriod: statement.statementPeriod,
-  }
-
-  clearStatus()
-  renderDashboard(dashboardData)
-  showDashboard()
 }
 
 function handleAnalyse(): void {
@@ -130,29 +149,19 @@ function handleAnalyse(): void {
     return
   }
 
-  const password = passwordInput?.value ?? ''
-
-  runPipeline(file, password).catch((err: unknown) => {
-    showStatusError(classifyError(err))
-  })
+  runPipeline(file, passwordInput?.value ?? '')
 }
 
 function handleBack(): void {
   showUploadView()
-
   const fileInput = document.getElementById('pdf-input') as HTMLInputElement | null
   const passwordInput = document.getElementById('pdf-password') as HTMLInputElement | null
-
   if (fileInput) fileInput.value = ''
   if (passwordInput) passwordInput.value = ''
-
   clearStatus()
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const analyseBtn = document.getElementById('analyse-btn')
-  const backBtn = document.getElementById('back-btn')
-
-  analyseBtn?.addEventListener('click', handleAnalyse)
-  backBtn?.addEventListener('click', handleBack)
+  document.getElementById('analyse-btn')?.addEventListener('click', handleAnalyse)
+  document.getElementById('back-btn')?.addEventListener('click', handleBack)
 })

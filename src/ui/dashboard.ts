@@ -85,9 +85,9 @@ function makeRow(className: string, label: string, value: string): HTMLElement {
   return row
 }
 
-function buildPortfolioCard(portfolio: XIRRResult): HTMLElement {
+function buildPortfolioCard(portfolio: XIRRResult, animate: boolean): HTMLElement {
   const card = document.createElement('div')
-  card.className = 'portfolio-card'
+  card.className = animate ? 'portfolio-card portfolio-card--animate' : 'portfolio-card'
 
   const nameEl = document.createElement('h3')
   nameEl.className = 'portfolio-card__name'
@@ -130,12 +130,12 @@ function buildPortfolioCard(portfolio: XIRRResult): HTMLElement {
   return card
 }
 
-export function renderPortfolioGrid(portfolios: XIRRResult[]): void {
+export function renderPortfolioGrid(portfolios: XIRRResult[], animate = false): void {
   const grid = document.getElementById('portfolio-grid')
   if (!grid) return
   grid.innerHTML = ''
   for (const portfolio of portfolios) {
-    grid.appendChild(buildPortfolioCard(portfolio))
+    grid.appendChild(buildPortfolioCard(portfolio, animate))
   }
 }
 
@@ -148,14 +148,16 @@ function updateSortButton(order: SortOrder): void {
     textNode.textContent = order === 'desc' ? ' XIRR: High to Low' : ' XIRR: Low to High'
   btn.setAttribute(
     'aria-label',
-    order === 'desc' ? 'Sort funds by XIRR ascending' : 'Sort funds by XIRR descending',
+    order === 'desc'
+      ? 'Currently sorted high to low — click to sort low to high'
+      : 'Currently sorted low to high — click to sort high to low',
   )
 }
 
 function handleSortToggle(): void {
   currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc'
   updateSortButton(currentSortOrder)
-  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder))
+  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder), false)
 }
 
 export function renderDashboard(data: DashboardData): void {
@@ -169,9 +171,18 @@ export function renderDashboard(data: DashboardData): void {
 
   destroyCharts()
   renderStatCards(data)
-  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder))
+  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder), true)
   updateSortButton(currentSortOrder)
   renderAllocationChart('allocation-chart', data.portfolios)
+
+  const canvas = document.getElementById('allocation-chart')
+  if (canvas) {
+    const names = data.portfolios.map((p) => p.schemeName).join(', ')
+    canvas.setAttribute(
+      'aria-label',
+      `Portfolio allocation doughnut chart showing ${data.portfolios.length} funds: ${names}`,
+    )
+  }
 
   const sortBtn = document.getElementById('sort-btn')
   sortBtn?.removeEventListener('click', handleSortToggle)

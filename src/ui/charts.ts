@@ -22,10 +22,6 @@ const ALLOCATION_PALETTE = [
   '#a855f7',
 ]
 
-const COLOR_POSITIVE = '#16a34a'
-const COLOR_NEGATIVE = '#dc2626'
-const COLOR_NEUTRAL = '#6b7280'
-
 const activeCharts: ChartInstance[] = []
 
 export function destroyCharts(): void {
@@ -33,6 +29,35 @@ export function destroyCharts(): void {
     chart.destroy()
   }
   activeCharts.length = 0
+
+  const existing = document.getElementById('allocation-legend')
+  if (existing) existing.innerHTML = ''
+}
+
+function renderCustomLegend(portfolios: XIRRResult[]): void {
+  const container = document.getElementById('allocation-legend')
+  if (!container) return
+
+  container.innerHTML = ''
+
+  for (let i = 0; i < portfolios.length; i++) {
+    const color = ALLOCATION_PALETTE[i % ALLOCATION_PALETTE.length]
+    const item = document.createElement('li')
+    item.className = 'chart-legend__item'
+
+    const swatch = document.createElement('span')
+    swatch.className = 'chart-legend__swatch'
+    swatch.style.background = color
+    swatch.setAttribute('aria-hidden', 'true')
+
+    const label = document.createElement('span')
+    label.className = 'chart-legend__label'
+    label.textContent = portfolios[i].schemeName
+
+    item.appendChild(swatch)
+    item.appendChild(label)
+    container.appendChild(item)
+  }
 }
 
 export function renderAllocationChart(canvasId: string, portfolios: XIRRResult[]): ChartInstance {
@@ -55,11 +80,11 @@ export function renderAllocationChart(canvasId: string, portfolios: XIRRResult[]
       animation: { duration: 800 },
       responsive: true,
       plugins: {
-        legend: { position: 'bottom' },
+        legend: { display: false },
       },
     },
   })
   activeCharts.push(chart)
+  renderCustomLegend(portfolios)
   return chart
 }
-

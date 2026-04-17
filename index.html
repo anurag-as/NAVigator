@@ -9,23 +9,34 @@
     />
     <title>NAVigator — Mutual Fund XIRR Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <style>
+      /* Prevent FOUC on the upload icon before CSS loads */
+      .upload-card-icon {
+        visibility: hidden;
+      }
+    </style>
   </head>
   <body>
-    <header>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <header role="banner">
       <div class="header-inner">
         <h1>NAVigator</h1>
         <p>
-          Your mutual fund XIRR dashboard — entirely in your browser. Your data is not uploaded or
-          stored
+          Your mutual fund XIRR dashboard. Entirely in your browser. Your data is never uploaded or
+          stored.
         </p>
       </div>
     </header>
 
-    <main>
-      <!-- ── Upload View ── -->
-      <section id="upload-view">
+    <main id="main-content">
+      <!-- Upload View -->
+      <section id="upload-view" aria-label="Upload your CAS statement">
         <details class="cas-guide">
-          <summary class="cas-guide__toggle">
+          <summary
+            class="cas-guide__toggle"
+            aria-label="How to download your CAS from CAMS — click to expand"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -33,6 +44,7 @@
               stroke-width="2"
               stroke="currentColor"
               aria-hidden="true"
+              focusable="false"
             >
               <path
                 stroke-linecap="round"
@@ -49,9 +61,8 @@
                 href="https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement"
                 target="_blank"
                 rel="noopener noreferrer"
+                >camsonline.com → Statements → Consolidated Account Statement</a
               >
-                camsonline.com → Statements → Consolidated Account Statement
-              </a>
             </li>
             <li>
               Under <strong>Statement Type</strong>, select <strong>Detailed</strong> (includes
@@ -72,7 +83,7 @@
           </ol>
         </details>
 
-        <div class="upload-card">
+        <div class="upload-card" role="form" aria-label="Analyse CAS statement">
           <div class="upload-card-header">
             <div class="upload-card-icon" aria-hidden="true">
               <svg
@@ -81,6 +92,7 @@
                 viewBox="0 0 24 24"
                 stroke-width="1.75"
                 stroke="currentColor"
+                focusable="false"
               >
                 <path
                   stroke-linecap="round"
@@ -95,36 +107,38 @@
 
           <div class="form-field">
             <label for="pdf-input">Consolidated Account Statement (PDF)</label>
-            <input type="file" accept=".pdf" id="pdf-input" />
+            <input type="file" accept=".pdf" id="pdf-input" aria-describedby="pdf-input-hint" />
+            <span id="pdf-input-hint" class="field-hint">Only PDF files are supported</span>
           </div>
 
           <div class="form-field">
-            <label for="pdf-password">PDF Password (leave blank if none)</label>
+            <label for="pdf-password">PDF Password</label>
             <input
               type="password"
               id="pdf-password"
               autocomplete="current-password"
-              placeholder="••••••••"
+              placeholder="Leave blank if not password-protected"
+              aria-describedby="pdf-password-hint"
             />
           </div>
 
-          <button id="analyse-btn" type="button">Calculate XIRR</button>
+          <button id="analyse-btn" type="button" aria-live="polite">Calculate XIRR</button>
         </div>
 
-        <div id="status-bar" hidden aria-live="polite">
+        <div id="status-bar" hidden role="status" aria-live="polite" aria-atomic="true">
           <span class="status-spinner" aria-hidden="true"></span>
           <span id="status-text"></span>
         </div>
       </section>
 
-      <!-- ── Dashboard View ── -->
-      <section id="dashboard-view" hidden>
+      <!-- Dashboard View -->
+      <section id="dashboard-view" hidden aria-label="Portfolio dashboard">
         <div class="dashboard-header">
           <div>
             <h2 class="dashboard-title">Portfolio Overview</h2>
-            <p class="dashboard-period" id="dashboard-period"></p>
+            <p class="dashboard-period" id="dashboard-period" aria-live="polite"></p>
           </div>
-          <button id="back-btn" type="button">
+          <button id="back-btn" type="button" aria-label="Go back and analyse another PDF">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="16"
@@ -134,6 +148,7 @@
               stroke-width="2"
               stroke="currentColor"
               aria-hidden="true"
+              focusable="false"
             >
               <path
                 stroke-linecap="round"
@@ -145,48 +160,48 @@
           </button>
         </div>
 
-        <p class="section-heading">Summary</p>
-        <div class="stat-cards-grid">
-          <div class="stat-card" id="card-invested">
+        <h3 class="section-heading">Summary</h3>
+        <div class="stat-cards-grid" role="list" aria-label="Portfolio summary statistics">
+          <div class="stat-card" id="card-invested" role="listitem">
             <span class="stat-card__label">Total Invested</span>
-            <span class="stat-card__value"></span>
+            <span class="stat-card__value" aria-live="polite"></span>
           </div>
-          <div class="stat-card" id="card-current">
+          <div class="stat-card" id="card-current" role="listitem">
             <span class="stat-card__label">Current Value</span>
-            <span class="stat-card__value"></span>
+            <span class="stat-card__value" aria-live="polite"></span>
           </div>
-          <div class="stat-card" id="card-xirr">
+          <div class="stat-card" id="card-xirr" role="listitem">
             <span class="stat-card__label">Overall XIRR</span>
-            <span class="stat-card__value"></span>
+            <span class="stat-card__value" aria-live="polite"></span>
           </div>
-          <div class="stat-card" id="card-gainloss">
+          <div class="stat-card" id="card-gainloss" role="listitem">
             <span class="stat-card__label">Gain / Loss</span>
-            <span class="stat-card__value"></span>
-            <span class="stat-card__sub"></span>
+            <span class="stat-card__value" aria-live="polite"></span>
+            <span class="stat-card__sub" aria-live="polite"></span>
           </div>
         </div>
 
-        <p class="section-heading">Charts</p>
+        <h3 class="section-heading">Allocation</h3>
         <div class="charts-row">
           <div class="chart-panel" id="allocation-chart-panel">
-            <h2 class="chart-panel__title">Portfolio Allocation</h2>
+            <h4 class="chart-panel__title">Portfolio Allocation</h4>
             <canvas
               id="allocation-chart"
               role="img"
-              aria-label="Allocation chart showing portfolio distribution by current value"
+              aria-label="Portfolio allocation chart"
             ></canvas>
+            <ul id="allocation-legend" class="chart-legend" aria-label="Chart legend"></ul>
           </div>
         </div>
 
-        <p class="section-heading">Fund Breakdown</p>
         <div class="breakdown-header">
-          <span></span>
+          <h3 class="section-heading" style="margin-bottom: 0">Fund Breakdown</h3>
           <button
             id="sort-btn"
             class="sort-btn"
             type="button"
             data-order="desc"
-            aria-label="Sort funds by XIRR"
+            aria-label="Currently sorted high to low — click to sort low to high"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -195,6 +210,7 @@
               stroke-width="2"
               stroke="currentColor"
               aria-hidden="true"
+              focusable="false"
             >
               <path
                 stroke-linecap="round"
@@ -205,11 +221,11 @@
             XIRR: High to Low
           </button>
         </div>
-        <div id="portfolio-grid"></div>
+        <div id="portfolio-grid" role="list" aria-label="Fund breakdown"></div>
       </section>
     </main>
 
-    <footer>
+    <footer role="contentinfo">
       <div class="footer-inner">
         <p class="footer-copyright">© 2025 NAVigator. Built for Indian mutual fund investors.</p>
         <p class="footer-disclaimer">
