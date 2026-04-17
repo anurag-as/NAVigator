@@ -3,10 +3,61 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self'; worker-src blob:"
+    />
     <title>NAVigator</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
+    <link rel="stylesheet" href="/src/css/reset.css" />
+    <link rel="stylesheet" href="/src/css/variables.css" />
+    <link rel="stylesheet" href="/src/css/layout.css" />
+    <link rel="stylesheet" href="/src/css/components.css" />
+    <link rel="stylesheet" href="/src/css/animations.css" />
   </head>
   <body>
+    <header>
+      <h1>NAVigator</h1>
+      <p>Your mutual fund XIRR dashboard — entirely in your browser.</p>
+    </header>
+
+    <main>
+      <section id="upload-view">
+        <div class="upload-card">
+          <label for="pdf-input">Consolidated Account Statement (PDF)</label>
+          <input type="file" accept=".pdf" id="pdf-input" />
+
+          <label for="pdf-password">PDF Password (if protected)</label>
+          <input type="password" id="pdf-password" autocomplete="current-password" />
+
+          <button id="analyse-btn" type="button">Analyse</button>
+        </div>
+
+        <div id="status-bar" hidden aria-live="polite"></div>
+      </section>
+
+      <section id="dashboard-view" hidden>
+        <button id="back-btn" type="button">Analyse Another PDF</button>
+      </section>
+    </main>
+
+    <footer>
+      <p>All processing happens locally in your browser. No data is uploaded.</p>
+    </footer>
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
+      type="module"
+      integrity="sha512-4iCVbAlp3QYmDeUEIj/CIlFSfY2h++C7g7H+e3M26ExvFXSn7sxIMbZ8jPyXgD///IsHG6Ttae/j2Txntlr2Wg=="
+      crossorigin="anonymous"
+    ></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+      integrity="sha512-k72Y+sws0148dhTBT8Nyro04RwjANbBxNCZ80xKT3FdHNON55/us15Ju0YQ2dD0uzyBJ5YjXnbUcLWaCaw3rCg=="
+      crossorigin="anonymous"
+    ></script>
+
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

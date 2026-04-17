@@ -14,6 +14,6 @@ export function formatPct(rate: number): string {
 }
 
 export function formatGainLoss(amount: number): string {
-  const n = amount === 0 ? 0 : amount
+  const n = Object.is(amount, -0) ? 0 : amount
   return n > 0 ? `+${formatINR(n)}` : formatINR(n)
 }
