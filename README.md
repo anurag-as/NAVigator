@@ -2,6 +2,8 @@
 
 A fully client-side static web app that parses your CAMS/KFintech Consolidated Account Statement (CAS) PDF and computes XIRR for each mutual fund portfolio, all in the browser. Nothing is uploaded to any server.
 
+**Try it live at [NAVigator](https://anurag-as.github.io/NAVigator/).**
+
 ## Development
 
 ### Prerequisites
