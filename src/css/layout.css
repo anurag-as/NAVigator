@@ -65,8 +65,8 @@ main {
 
 /* ── Footer ── */
 footer {
-  text-align: center;
-  padding: var(--space-6);
+  text-align: left;
+  padding: var(--space-8) var(--space-6);
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
   border-top: 1px solid var(--color-border);

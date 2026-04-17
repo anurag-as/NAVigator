@@ -1,4 +1,4 @@
-import type { XIRRResult } from './types'
+import type { XIRRResult } from '../core/types'
 
 declare const Chart: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -63,37 +63,3 @@ export function renderAllocationChart(canvasId: string, portfolios: XIRRResult[]
   return chart
 }
 
-export function renderReturnsChart(canvasId: string, portfolios: XIRRResult[]): ChartInstance {
-  const canvas = document.getElementById(canvasId) as HTMLCanvasElement
-  const chart = new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: portfolios.map((p) => p.schemeName),
-      datasets: [
-        {
-          label: 'XIRR (%)',
-          data: portfolios.map((p) => (p.xirr !== null ? p.xirr * 100 : 0)),
-          backgroundColor: portfolios.map((p) => {
-            if (p.xirr === null || p.xirr === 0) return COLOR_NEUTRAL
-            return p.xirr > 0 ? COLOR_POSITIVE : COLOR_NEGATIVE
-          }),
-          borderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      animation: { duration: 600 },
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-      },
-      scales: {
-        y: {
-          title: { display: true, text: 'XIRR (%)' },
-        },
-      },
-    },
-  })
-  activeCharts.push(chart)
-  return chart
-}

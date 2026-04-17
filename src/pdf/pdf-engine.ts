@@ -1,4 +1,4 @@
-import { PDFLoadError, PDFPasswordError } from './types'
+import { PDFLoadError, PDFPasswordError } from '../core/types'
 
 const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs'
 const WORKER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs'

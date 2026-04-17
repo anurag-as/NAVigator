@@ -1,21 +1,30 @@
-import type { DashboardData, XIRRResult } from './types'
-import { formatINR, formatPct, formatGainLoss } from './formatter'
-import { destroyCharts, renderAllocationChart, renderReturnsChart } from './charts'
+import type { DashboardData, XIRRResult } from '../core/types'
+import { formatINR, formatPct, formatGainLoss } from '../core/formatter'
+import { destroyCharts, renderAllocationChart } from './charts'
+
+type SortOrder = 'desc' | 'asc'
 
 const XIRR_CLASSES = ['xirr-positive', 'xirr-negative', 'xirr-zero'] as const
 
+let currentPortfolios: XIRRResult[] = []
+let currentSortOrder: SortOrder = 'desc'
+
+function sortPortfolios(portfolios: XIRRResult[], order: SortOrder): XIRRResult[] {
+  return [...portfolios].sort((a, b) => {
+    const av = a.xirr ?? -Infinity
+    const bv = b.xirr ?? -Infinity
+    return order === 'desc' ? bv - av : av - bv
+  })
+}
+
 export function showUploadView(): void {
-  const uploadView = document.getElementById('upload-view')
-  const dashboardView = document.getElementById('dashboard-view')
-  if (uploadView) uploadView.removeAttribute('hidden')
-  if (dashboardView) dashboardView.setAttribute('hidden', '')
+  document.getElementById('upload-view')?.removeAttribute('hidden')
+  document.getElementById('dashboard-view')?.setAttribute('hidden', '')
 }
 
 export function showDashboard(): void {
-  const uploadView = document.getElementById('upload-view')
-  const dashboardView = document.getElementById('dashboard-view')
-  if (uploadView) uploadView.setAttribute('hidden', '')
-  if (dashboardView) dashboardView.removeAttribute('hidden')
+  document.getElementById('upload-view')?.setAttribute('hidden', '')
+  document.getElementById('dashboard-view')?.removeAttribute('hidden')
 }
 
 export function applyXirrClass(element: Element, xirr: number | null): void {
@@ -34,30 +43,30 @@ export function renderStatCards(data: DashboardData): void {
 
   const cardInvested = document.getElementById('card-invested')
   if (cardInvested) {
-    const valueEl = cardInvested.querySelector('.stat-card__value')
-    if (valueEl) valueEl.textContent = formatINR(overall.totalInvested)
+    const v = cardInvested.querySelector('.stat-card__value')
+    if (v) v.textContent = formatINR(overall.totalInvested)
   }
 
   const cardCurrent = document.getElementById('card-current')
   if (cardCurrent) {
-    const valueEl = cardCurrent.querySelector('.stat-card__value')
-    if (valueEl) valueEl.textContent = formatINR(overall.currentValue)
+    const v = cardCurrent.querySelector('.stat-card__value')
+    if (v) v.textContent = formatINR(overall.currentValue)
   }
 
   const cardXirr = document.getElementById('card-xirr')
   if (cardXirr) {
-    const valueEl = cardXirr.querySelector('.stat-card__value')
-    if (valueEl) valueEl.textContent = overall.xirr !== null ? formatPct(overall.xirr) : 'N/A'
+    const v = cardXirr.querySelector('.stat-card__value')
+    if (v) v.textContent = overall.xirr !== null ? formatPct(overall.xirr) : 'N/A'
     applyXirrClass(cardXirr, overall.xirr)
   }
 
   const cardGainLoss = document.getElementById('card-gainloss')
   if (cardGainLoss) {
-    const valueEl = cardGainLoss.querySelector('.stat-card__value')
-    const subEl = cardGainLoss.querySelector('.stat-card__sub')
-    if (valueEl) valueEl.textContent = formatGainLoss(overall.gainLoss)
-    if (subEl && overall.totalInvested !== 0) {
-      subEl.textContent = formatPct(overall.gainLoss / overall.totalInvested)
+    const v = cardGainLoss.querySelector('.stat-card__value')
+    const sub = cardGainLoss.querySelector('.stat-card__sub')
+    if (v) v.textContent = formatGainLoss(overall.gainLoss)
+    if (sub && overall.totalInvested !== 0) {
+      sub.textContent = formatPct(overall.gainLoss / overall.totalInvested)
     }
   }
 }
@@ -98,16 +107,16 @@ function buildPortfolioCard(portfolio: XIRRResult): HTMLElement {
   const xirrEl = document.createElement('p')
   xirrEl.className = 'portfolio-card__xirr'
 
-  const xirrLabelEl = document.createElement('span')
-  xirrLabelEl.className = 'portfolio-card__label'
-  xirrLabelEl.textContent = 'XIRR'
-  xirrEl.appendChild(xirrLabelEl)
+  const xirrLabel = document.createElement('span')
+  xirrLabel.className = 'portfolio-card__label'
+  xirrLabel.textContent = 'XIRR'
+  xirrEl.appendChild(xirrLabel)
 
   if (portfolio.xirr !== null) {
-    const xirrValueEl = document.createElement('span')
-    xirrValueEl.className = 'portfolio-card__value'
-    xirrValueEl.textContent = formatPct(portfolio.xirr)
-    xirrEl.appendChild(xirrValueEl)
+    const xirrValue = document.createElement('span')
+    xirrValue.className = 'portfolio-card__value'
+    xirrValue.textContent = formatPct(portfolio.xirr)
+    xirrEl.appendChild(xirrValue)
     applyXirrClass(xirrEl, portfolio.xirr)
   } else {
     const errorEl = document.createElement('span')
@@ -124,25 +133,49 @@ function buildPortfolioCard(portfolio: XIRRResult): HTMLElement {
 export function renderPortfolioGrid(portfolios: XIRRResult[]): void {
   const grid = document.getElementById('portfolio-grid')
   if (!grid) return
+  grid.innerHTML = ''
   for (const portfolio of portfolios) {
     grid.appendChild(buildPortfolioCard(portfolio))
   }
 }
 
+function updateSortButton(order: SortOrder): void {
+  const btn = document.getElementById('sort-btn')
+  if (!btn) return
+  btn.dataset.order = order
+  const textNode = [...btn.childNodes].find((n) => n.nodeType === Node.TEXT_NODE)
+  if (textNode)
+    textNode.textContent = order === 'desc' ? ' XIRR: High to Low' : ' XIRR: Low to High'
+  btn.setAttribute(
+    'aria-label',
+    order === 'desc' ? 'Sort funds by XIRR ascending' : 'Sort funds by XIRR descending',
+  )
+}
+
+function handleSortToggle(): void {
+  currentSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc'
+  updateSortButton(currentSortOrder)
+  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder))
+}
+
 export function renderDashboard(data: DashboardData): void {
-  const grid = document.getElementById('portfolio-grid')
-  if (grid) grid.innerHTML = ''
+  currentPortfolios = data.portfolios
+  currentSortOrder = 'desc'
 
   const periodEl = document.getElementById('dashboard-period')
   if (periodEl && data.statementPeriod.from && data.statementPeriod.to) {
-    periodEl.textContent = `Statement period: ${data.statementPeriod.from} → ${data.statementPeriod.to}`
+    periodEl.textContent = `${data.statementPeriod.from} → ${data.statementPeriod.to}`
   }
 
   destroyCharts()
   renderStatCards(data)
-  renderPortfolioGrid(data.portfolios)
+  renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder))
+  updateSortButton(currentSortOrder)
   renderAllocationChart('allocation-chart', data.portfolios)
-  renderReturnsChart('returns-chart', data.portfolios)
+
+  const sortBtn = document.getElementById('sort-btn')
+  sortBtn?.removeEventListener('click', handleSortToggle)
+  sortBtn?.addEventListener('click', handleSortToggle)
 
   requestAnimationFrame(() => {
     for (const card of document.querySelectorAll('.stat-card')) {

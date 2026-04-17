@@ -1,8 +1,13 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
-import { computeXIRR, computeOverallXIRR, validateCashFlows, evaluateNPV } from '../src/xirr'
-import type { CashFlow, CashFlowSeries, PortfolioResult } from '../src/types'
-import { XIRRInsufficientDataError, XIRRConvergenceError } from '../src/types'
+import {
+  computeXIRR,
+  computeOverallXIRR,
+  validateCashFlows,
+  evaluateNPV,
+} from '../../src/core/xirr'
+import type { CashFlow, CashFlowSeries, PortfolioResult } from '../../src/core/types'
+import { XIRRInsufficientDataError, XIRRConvergenceError } from '../../src/core/types'
 
 function cf(dateStr: string, amount: number): CashFlow {
   return { date: new Date(dateStr), amount }

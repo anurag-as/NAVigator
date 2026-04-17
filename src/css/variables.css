@@ -1,5 +1,4 @@
 :root {
-  /* ── Semantic colour tokens ── */
   --color-gain: #16a34a;
   --color-gain-bg: #f0fdf4;
   --color-gain-border: #bbf7d0;
@@ -7,31 +6,21 @@
   --color-loss-bg: #fef2f2;
   --color-loss-border: #fecaca;
   --color-neutral: #6b7280;
-  --color-neutral-bg: #f9fafb;
 
-  /* ── Brand colours ── */
   --color-brand-primary: #4f46e5;
-  --color-brand-primary-hover: #4338ca;
   --color-brand-primary-light: #eef2ff;
-  --color-brand-secondary: #7c3aed;
   --color-brand-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
 
-  /* ── Surface / background colours ── */
   --color-bg: #f8fafc;
   --color-surface: #ffffff;
-  --color-surface-raised: #f1f5f9;
-  --color-surface-overlay: rgba(255, 255, 255, 0.8);
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
 
-  /* ── Text colours ── */
   --color-text-primary: #0f172a;
   --color-text-secondary: #334155;
   --color-text-muted: #64748b;
-  --color-text-placeholder: #94a3b8;
   --color-text-inverse: #ffffff;
 
-  /* ── Spacing scale (4 px base) ── */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -42,10 +31,7 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
-  --space-20: 5rem;
-  --space-24: 6rem;
 
-  /* ── Typography ── */
   --font-sans:
     'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
@@ -60,7 +46,6 @@
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;
@@ -71,39 +56,28 @@
   --line-height-tight: 1.2;
   --line-height-snug: 1.375;
   --line-height-normal: 1.5;
-  --line-height-relaxed: 1.625;
 
   --letter-spacing-tight: -0.025em;
-  --letter-spacing-normal: 0em;
   --letter-spacing-wide: 0.025em;
-  --letter-spacing-wider: 0.05em;
   --letter-spacing-widest: 0.1em;
 
-  /* ── Border radius tokens ── */
   --radius-sm: 0.375rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
-  --radius-3xl: 1.5rem;
   --radius-full: 9999px;
 
-  /* ── Shadow tokens ── */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.07), 0 1px 2px -1px rgb(0 0 0 / 0.07);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.07), 0 4px 6px -4px rgb(0 0 0 / 0.07);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
   --shadow-brand: 0 4px 14px 0 rgb(79 70 229 / 0.25);
-  --shadow-inset: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 
-  /* ── Transition ── */
   --transition-fast: 120ms ease;
   --transition-base: 200ms ease;
   --transition-slow: 350ms ease;
-  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* ── Layout ── */
   --max-width-content: 1200px;
   --min-touch-target: 44px;
   --header-height: 72px;

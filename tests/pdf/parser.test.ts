@@ -6,10 +6,10 @@ import {
   classifyTransaction,
   buildCashFlowSeries,
   parseCASStatement,
-} from '../src/parser'
-import type { Scheme } from '../src/types'
-import { TransactionType } from '../src/types'
-import type { RawPage } from '../src/pdf-engine'
+} from '../../src/pdf/parser'
+import type { Scheme } from '../../src/core/types'
+import { TransactionType } from '../../src/core/types'
+import type { RawPage } from '../../src/pdf/pdf-engine'
 
 const MONTH_ABBREVS = [
   'Jan',

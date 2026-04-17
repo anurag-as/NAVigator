@@ -4,7 +4,7 @@ import {
   ParseError,
   XIRRInsufficientDataError,
   XIRRConvergenceError,
-} from './types'
+} from '../core/types'
 
 export function classifyError(err: unknown): string {
   if (err instanceof PDFPasswordError) {

@@ -14,13 +14,64 @@
     <header>
       <div class="header-inner">
         <h1>NAVigator</h1>
-        <p>Your mutual fund XIRR dashboard — entirely in your browser.</p>
+        <p>
+          Your mutual fund XIRR dashboard — entirely in your browser. Your data is not uploaded or
+          stored
+        </p>
       </div>
     </header>
 
     <main>
       <!-- ── Upload View ── -->
       <section id="upload-view">
+        <details class="cas-guide">
+          <summary class="cas-guide__toggle">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+              />
+            </svg>
+            How to download your CAS from CAMS
+          </summary>
+          <ol class="cas-guide__steps">
+            <li>
+              Go to
+              <a
+                href="https://www.camsonline.com/Investors/Statements/Consolidated-Account-Statement"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                camsonline.com → Statements → Consolidated Account Statement
+              </a>
+            </li>
+            <li>
+              Under <strong>Statement Type</strong>, select <strong>Detailed</strong> (includes
+              transaction listing)
+            </li>
+            <li>
+              Under <strong>Period</strong>, select <strong>Specific Period</strong> and choose your
+              full investment date range
+            </li>
+            <li>
+              Under <strong>Folio Listing</strong>, select
+              <strong>Transacted folios and folios with balance</strong>
+            </li>
+            <li>
+              Enter your email and PAN, then click <strong>Submit</strong> — the PDF will arrive in
+              your inbox
+            </li>
+          </ol>
+        </details>
+
         <div class="upload-card">
           <div class="upload-card-header">
             <div class="upload-card-icon" aria-hidden="true">
@@ -125,23 +176,53 @@
               aria-label="Allocation chart showing portfolio distribution by current value"
             ></canvas>
           </div>
-          <div class="chart-panel" id="returns-chart-panel">
-            <h2 class="chart-panel__title">Returns by Fund (XIRR %)</h2>
-            <canvas
-              id="returns-chart"
-              role="img"
-              aria-label="Returns chart showing XIRR percentage for each portfolio"
-            ></canvas>
-          </div>
         </div>
 
         <p class="section-heading">Fund Breakdown</p>
+        <div class="breakdown-header">
+          <span></span>
+          <button
+            id="sort-btn"
+            class="sort-btn"
+            type="button"
+            data-order="desc"
+            aria-label="Sort funds by XIRR"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M3 4.5h14.25M3 9h9.75M3 13.5h5.25m5.25-.75L17.25 9m0 0L21 12.75M17.25 9v12"
+              />
+            </svg>
+            XIRR: High to Low
+          </button>
+        </div>
         <div id="portfolio-grid"></div>
       </section>
     </main>
 
     <footer>
-      <p>All processing happens locally in your browser. Your financial data is never uploaded.</p>
+      <div class="footer-inner">
+        <p class="footer-copyright">© 2025 NAVigator. Built for Indian mutual fund investors.</p>
+        <p class="footer-disclaimer">
+          NAVigator is an independent, open-source tool and is not affiliated with, endorsed by, or
+          connected to CAMS, KFintech, AMFI, or any asset management company. All trademarks,
+          service marks, and fund names belong to their respective owners. XIRR calculations are for
+          informational purposes only and do not constitute financial advice.
+        </p>
+        <p class="footer-privacy">
+          Your data never leaves your browser. No PDF, password, or financial information is
+          transmitted to any server.
+        </p>
+      </div>
     </footer>
 
     <script

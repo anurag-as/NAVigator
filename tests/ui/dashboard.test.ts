@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
-import { applyXirrClass, renderStatCards, renderPortfolioGrid } from '../src/dashboard'
-import type { DashboardData, XIRRResult } from '../src/types'
+import { applyXirrClass, renderStatCards, renderPortfolioGrid } from '../../src/ui/dashboard'
+import type { DashboardData, XIRRResult } from '../../src/core/types'
 
 function makeXirrResult(overrides: Partial<XIRRResult> = {}): XIRRResult {
   return {

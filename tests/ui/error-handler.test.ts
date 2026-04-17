@@ -1,13 +1,13 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { classifyError, showStatusError, showInlineError } from '../src/error-handler'
+import { classifyError, showStatusError, showInlineError } from '../../src/ui/error-handler'
 import {
   PDFPasswordError,
   PDFLoadError,
   ParseError,
   XIRRInsufficientDataError,
   XIRRConvergenceError,
-} from '../src/types'
+} from '../../src/core/types'
 
 describe('classifyError', () => {
   it('maps PDFPasswordError to the incorrect-password message', () => {

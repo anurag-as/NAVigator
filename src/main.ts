@@ -3,12 +3,12 @@ import './css/variables.css'
 import './css/layout.css'
 import './css/components.css'
 import './css/animations.css'
-import { loadAndExtract } from './pdf-engine'
-import { parseCASStatement, buildCashFlowSeries } from './parser'
-import { computeXIRR, computeOverallXIRR } from './xirr'
-import { renderDashboard, showDashboard, showUploadView } from './dashboard'
-import { classifyError, showStatusError } from './error-handler'
-import type { DashboardData, XIRRResult, PortfolioResult } from './types'
+import { loadAndExtract } from './pdf/pdf-engine'
+import { parseCASStatement, buildCashFlowSeries } from './pdf/parser'
+import { computeXIRR, computeOverallXIRR } from './core/xirr'
+import { renderDashboard, showDashboard, showUploadView } from './ui/dashboard'
+import { classifyError, showStatusError } from './ui/error-handler'
+import type { DashboardData, XIRRResult, PortfolioResult } from './core/types'
 
 function setStatus(message: string): void {
   const statusBar = document.getElementById('status-bar')
@@ -44,9 +44,12 @@ async function runPipeline(file: File, password: string): Promise<void> {
   for (const scheme of statement.schemes) {
     const cashFlowSeries = buildCashFlowSeries(scheme)
 
-    const totalInvested = cashFlowSeries.cashFlows
-      .filter((cf) => cf.amount < 0)
-      .reduce((sum, cf) => sum + Math.abs(cf.amount), 0)
+    const totalInvested =
+      scheme.totalCostValue > 0
+        ? scheme.totalCostValue
+        : cashFlowSeries.cashFlows
+            .filter((cf) => cf.amount < 0)
+            .reduce((sum, cf) => sum + Math.abs(cf.amount), 0)
 
     const currentValue = scheme.valuationValue
 

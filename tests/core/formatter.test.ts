@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import * as fc from 'fast-check'
-import { formatINR, formatPct, formatGainLoss } from '../src/formatter'
+import { formatINR, formatPct, formatGainLoss } from '../../src/core/formatter'
 
 function stripAndParse(formatted: string): number {
   return parseFloat(formatted.replace(/₹/g, '').replace(/,/g, '').trim())

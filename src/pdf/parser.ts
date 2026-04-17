@@ -1,5 +1,5 @@
-import type { CashFlow, CashFlowSeries, ParsedStatement, Scheme, Transaction } from './types'
-import { ParseError, TransactionType } from './types'
+import type { CashFlow, CashFlowSeries, ParsedStatement, Scheme, Transaction } from '../core/types'
+import { ParseError, TransactionType } from '../core/types'
 import type { RawPage } from './pdf-engine'
 
 const MONTH_MAP: Record<string, string> = {
@@ -314,12 +314,10 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       continue
     }
 
-    // Lines that are purely numeric (closing balance carry-forward) are not descriptions
     if (/^[\d,]+\.\d+$/.test(line)) {
       continue
     }
 
-    // Accumulate as a pending description for the next date line
     if (line.length > 3 && !/^[*]+$/.test(line)) {
       pendingDescription = line
     }
@@ -344,13 +342,12 @@ function findNextNonEmpty(lines: string[], startIdx: number): string | null {
   return null
 }
 
-// Parses right-to-left: trailing numeric tokens become amount/units/nav/balance columns;
-// everything to the left is the description.
 function parseTransactionLine(
   dateStr: string,
   rest: string,
   allLines: string[],
   lineIdx: number,
+  pendingDescription = '',
 ): Transaction | null {
   let source = rest.trim()
 
@@ -360,7 +357,8 @@ function parseTransactionLine(
       nextLine &&
       !nextLine.match(/^\d{2}-[A-Za-z]{3}-\d{4}/) &&
       !nextLine.match(/Closing\s+Unit\s+Balance/i) &&
-      !nextLine.match(/Valuation\s+on/i)
+      !nextLine.match(/Valuation\s+on/i) &&
+      !nextLine.match(/Total\s+Cost\s+Value/i)
     ) {
       source = source + ' ' + nextLine
     }
@@ -384,7 +382,10 @@ function parseTransactionLine(
 
   if (numericTokens.length < 1) return null
 
-  const description = tokens.slice(0, descEndIdx).join(' ').trim()
+  let description = tokens.slice(0, descEndIdx).join(' ').trim()
+  if (!description && pendingDescription) {
+    description = pendingDescription
+  }
 
   const amount = normaliseAmount(numericTokens[0])
   const units = numericTokens.length >= 2 ? normaliseAmount(numericTokens[1]) : 0
