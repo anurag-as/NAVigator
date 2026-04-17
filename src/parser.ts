@@ -17,10 +17,6 @@ const MONTH_MAP: Record<string, string> = {
   Dec: '12',
 }
 
-/**
- * Converts a date string from `DD-MMM-YYYY` format to ISO 8601 `YYYY-MM-DD`.
- * Uses a static month lookup to avoid locale-dependent `Date.parse()` behaviour.
- */
 export function normaliseDate(ddMmmYYYY: string): string {
   const match = ddMmmYYYY.trim().match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/)
   if (!match) {
