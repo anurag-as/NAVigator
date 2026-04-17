@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/navigator/',
+  base: '/NAVigator/',
   build: {
     outDir: 'dist',
     sourcemap: false,
