@@ -5,6 +5,11 @@
   box-sizing: border-box;
 }
 
+/* Restore visibility hidden by the inline FOUC guard in index.html */
+body {
+  visibility: visible;
+}
+
 /* Margin and padding reset */
 * {
   margin: 0;

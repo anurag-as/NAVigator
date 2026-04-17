@@ -604,6 +604,7 @@
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  visibility: visible;
 }
 
 .cas-guide__toggle:hover {
