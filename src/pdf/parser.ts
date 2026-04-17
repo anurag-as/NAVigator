@@ -67,7 +67,7 @@ export function classifyTransaction(description: string): TransactionType {
 const NEGATIVE_TYPES = new Set<TransactionType>([
   TransactionType.PURCHASE,
   TransactionType.PURCHASE_SIP,
-  TransactionType.SWITCH_OUT,
+  TransactionType.SWITCH_IN,
   TransactionType.STAMP_DUTY_TAX,
   TransactionType.TDS_TAX,
   TransactionType.STT_TAX,
@@ -75,14 +75,27 @@ const NEGATIVE_TYPES = new Set<TransactionType>([
 
 const POSITIVE_TYPES = new Set<TransactionType>([
   TransactionType.REDEMPTION,
-  TransactionType.SWITCH_IN,
+  TransactionType.SWITCH_OUT,
   TransactionType.DIVIDEND_PAYOUT,
 ])
 
 export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
   const cashFlows: CashFlow[] = []
+  const valuationTime = new Date(scheme.valuationDate).getTime()
 
   for (const tx of scheme.transactions) {
+    const txTime = new Date(tx.date).getTime()
+
+    // Exclude any transaction on or after the valuation date — the valuation
+    // already reflects those units/NAV, so including them would double-count.
+    if (txTime >= valuationTime) {
+      console.debug(
+        `[NAVigator] Skipping transaction on/after valuation date ` +
+          `(${tx.date} ${tx.description} ₹${tx.amount}) for "${scheme.name}".`,
+      )
+      continue
+    }
+
     if (NEGATIVE_TYPES.has(tx.type)) {
       cashFlows.push({ date: new Date(tx.date), amount: -Math.abs(tx.amount) })
     } else if (POSITIVE_TYPES.has(tx.type)) {
@@ -394,14 +407,22 @@ function parseTransactionLine(
     }
   }
 
-  if (numericTokens.length < 1) return null
+  let description: string
+  let amountToken: string
 
-  let description = tokens.slice(0, descEndIdx).join(' ').trim()
-  if (!description && pendingDescription) {
-    description = pendingDescription
+  if (numericTokens.length < 1) {
+    const leadingMatch = source.match(/^([\d,]+\.?\d*)\*{0,3}\s*(.*)$/)
+    if (!leadingMatch) return null
+    amountToken = leadingMatch[1]
+    description = leadingMatch[2].replace(/\*+/g, '').trim()
+    if (!description && pendingDescription) description = pendingDescription
+  } else {
+    amountToken = numericTokens[0]
+    description = tokens.slice(0, descEndIdx).join(' ').trim()
+    if (!description && pendingDescription) description = pendingDescription
   }
 
-  const amount = normaliseAmount(numericTokens[0])
+  const amount = normaliseAmount(amountToken)
   const units = numericTokens.length >= 2 ? normaliseAmount(numericTokens[1]) : 0
   const nav = numericTokens.length >= 3 ? normaliseAmount(numericTokens[2]) : 0
 

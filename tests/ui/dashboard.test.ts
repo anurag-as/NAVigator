@@ -31,8 +31,7 @@ function countXirrClasses(element: Element): number {
   return XIRR_CLASSES.filter((cls) => element.classList.contains(cls)).length
 }
 
-// Feature: xirr-investment-dashboard, Property 7: XIRR indicator CSS class assignment
-describe('applyXirrClass — Property 7: XIRR indicator CSS class assignment', () => {
+describe('applyXirrClass — XIRR indicator CSS class assignment', () => {
   it('applies exactly one XIRR class for any finite XIRR value', () => {
     fc.assert(
       fc.property(
@@ -206,7 +205,7 @@ describe('renderPortfolioGrid', () => {
     expect(document.querySelector('.portfolio-card__error')?.textContent).toBe('Insufficient data')
   })
 
-  it('Property 7 (grid): every rendered XIRR element has exactly one XIRR class', () => {
+  it('every rendered XIRR element has exactly one XIRR class', () => {
     fc.assert(
       fc.property(
         fc.array(

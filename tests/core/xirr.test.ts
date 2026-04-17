@@ -38,8 +38,7 @@ function makePortfolio(series: CashFlowSeries): PortfolioResult {
   }
 }
 
-// Feature: xirr-investment-dashboard, Property 2: XIRR numerical correctness
-describe('computeXIRR — Property 2: XIRR numerical correctness', () => {
+describe('computeXIRR — XIRR numerical correctness', () => {
   it('|NPV(computeXIRR(series))| < 1e-4 for any valid cash flow series', () => {
     const validSeriesArb = fc
       .tuple(
@@ -84,8 +83,7 @@ describe('computeXIRR — Property 2: XIRR numerical correctness', () => {
   })
 })
 
-// Feature: xirr-investment-dashboard, Property 3: XIRR insufficient data rejection
-describe('computeXIRR — Property 3: XIRR insufficient data rejection', () => {
+describe('computeXIRR — XIRR insufficient data rejection', () => {
   it('throws XIRRInsufficientDataError for all-positive series', () => {
     fc.assert(
       fc.property(
@@ -147,8 +145,7 @@ describe('computeXIRR — Property 3: XIRR insufficient data rejection', () => {
   })
 })
 
-// Feature: xirr-investment-dashboard, Property 4: Overall XIRR equals merged series XIRR
-describe('computeOverallXIRR — Property 4: Overall XIRR equals merged series XIRR', () => {
+describe('computeOverallXIRR — Overall XIRR equals merged series XIRR', () => {
   it('computeOverallXIRR equals computeXIRR on the manually merged and sorted series', () => {
     const seriesArb = fc
       .tuple(

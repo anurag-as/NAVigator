@@ -83,8 +83,7 @@ function buildSyntheticCAS(
   return [{ pageNumber: 1, lines }]
 }
 
-// Feature: xirr-investment-dashboard, Property 1: Cash flow sign convention
-describe('buildCashFlowSeries — Property 1: Cash flow sign convention', () => {
+describe('buildCashFlowSeries — Cash flow sign convention', () => {
   const amtArb = fc.double({ min: 100, max: 100_000, noNaN: true, noDefaultInfinity: true })
   const valuationArb = fc.double({ min: 1_000, max: 500_000, noNaN: true, noDefaultInfinity: true })
 
@@ -92,7 +91,7 @@ describe('buildCashFlowSeries — Property 1: Cash flow sign convention', () => 
     const negativeTypes = [
       TransactionType.PURCHASE,
       TransactionType.PURCHASE_SIP,
-      TransactionType.SWITCH_OUT,
+      TransactionType.SWITCH_IN,
       TransactionType.STAMP_DUTY_TAX,
       TransactionType.TDS_TAX,
       TransactionType.STT_TAX,
@@ -114,7 +113,7 @@ describe('buildCashFlowSeries — Property 1: Cash flow sign convention', () => 
   it('positive transaction types produce positive cash flows', () => {
     const positiveTypes = [
       TransactionType.REDEMPTION,
-      TransactionType.SWITCH_IN,
+      TransactionType.SWITCH_OUT,
       TransactionType.DIVIDEND_PAYOUT,
     ]
     fc.assert(
@@ -208,12 +207,12 @@ describe('buildCashFlowSeries — Property 1: Cash flow sign convention', () => 
     expect(series.cashFlows[1].amount).toBeGreaterThan(0)
   })
 
-  it('switch-out is negative, switch-in is positive', () => {
+  it('switch-in is negative, switch-out is positive', () => {
     const series = buildCashFlowSeries(
       makeScheme({
         transactions: [
-          makeTx(TransactionType.SWITCH_OUT, 3000, '2022-01-01'),
-          makeTx(TransactionType.SWITCH_IN, 3000, '2022-01-02'),
+          makeTx(TransactionType.SWITCH_IN, 3000, '2022-01-01'),
+          makeTx(TransactionType.SWITCH_OUT, 3000, '2022-01-02'),
         ],
         valuationValue: 3500,
         valuationDate: '2023-01-01',
@@ -247,8 +246,7 @@ describe('buildCashFlowSeries — Property 1: Cash flow sign convention', () => 
   })
 })
 
-// Feature: xirr-investment-dashboard, Property 8: Date normalisation round-trip
-describe('normaliseDate — Property 8: Date normalisation round-trip', () => {
+describe('normaliseDate — Date normalisation round-trip', () => {
   it('reconstructs the same calendar date for any valid DD-MMM-YYYY input', () => {
     const dateArb = fc
       .record({
@@ -304,8 +302,7 @@ describe('normaliseDate — Property 8: Date normalisation round-trip', () => {
   })
 })
 
-// Feature: xirr-investment-dashboard, Property 9: Parser extracts all transactions
-describe('parseCASStatement — Property 9: Parser extracts all transactions', () => {
+describe('parseCASStatement — Parser extracts all transactions', () => {
   it('extracts exactly N transactions for a synthetic CAS block', () => {
     const txArb = fc.array(
       fc.record({

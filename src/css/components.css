@@ -461,6 +461,7 @@
 .portfolio-card__invested,
 .portfolio-card__current,
 .portfolio-card__gainloss,
+.portfolio-card__abs-return,
 .portfolio-card__xirr {
   display: flex;
   align-items: center;

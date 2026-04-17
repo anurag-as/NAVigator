@@ -56,7 +56,9 @@ export function renderStatCards(data: DashboardData): void {
   const cardXirr = document.getElementById('card-xirr')
   if (cardXirr) {
     const v = cardXirr.querySelector('.stat-card__value')
+    const sub = cardXirr.querySelector('.stat-card__sub')
     if (v) v.textContent = overall.xirr !== null ? formatPct(overall.xirr) : 'N/A'
+    if (sub) sub.textContent = 'Annualised return'
     applyXirrClass(cardXirr, overall.xirr)
   }
 
@@ -66,7 +68,7 @@ export function renderStatCards(data: DashboardData): void {
     const sub = cardGainLoss.querySelector('.stat-card__sub')
     if (v) v.textContent = formatGainLoss(overall.gainLoss)
     if (sub && overall.totalInvested !== 0) {
-      sub.textContent = formatPct(overall.gainLoss / overall.totalInvested)
+      sub.textContent = `${formatPct(overall.gainLoss / overall.totalInvested)} absolute`
     }
   }
 }
@@ -104,12 +106,17 @@ function buildPortfolioCard(portfolio: XIRRResult, animate: boolean): HTMLElemen
     makeRow('portfolio-card__gainloss', 'Gain / Loss', formatGainLoss(portfolio.gainLoss)),
   )
 
+  if (portfolio.totalInvested !== 0) {
+    const absReturn = portfolio.gainLoss / portfolio.totalInvested
+    card.appendChild(makeRow('portfolio-card__abs-return', 'Absolute Return', formatPct(absReturn)))
+  }
+
   const xirrEl = document.createElement('p')
   xirrEl.className = 'portfolio-card__xirr'
 
   const xirrLabel = document.createElement('span')
   xirrLabel.className = 'portfolio-card__label'
-  xirrLabel.textContent = 'XIRR'
+  xirrLabel.textContent = 'XIRR (p.a.)'
   xirrEl.appendChild(xirrLabel)
 
   if (portfolio.xirr !== null) {

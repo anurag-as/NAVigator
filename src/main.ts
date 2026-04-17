@@ -133,7 +133,8 @@ async function runPipeline(file: File, password: string): Promise<void> {
   }
 }
 
-function handleAnalyse(): void {
+function handleAnalyse(e: Event): void {
+  e.preventDefault()
   const fileInput = document.getElementById('pdf-input') as HTMLInputElement | null
   const passwordInput = document.getElementById('pdf-password') as HTMLInputElement | null
 
@@ -157,6 +158,16 @@ function handleBack(): void {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  document.querySelector('.upload-card')?.addEventListener('submit', handleAnalyse)
   document.getElementById('analyse-btn')?.addEventListener('click', handleAnalyse)
   document.getElementById('back-btn')?.addEventListener('click', handleBack)
+
+  document.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key !== 'Enter') return
+    const uploadView = document.getElementById('upload-view')
+    if (!uploadView || uploadView.hasAttribute('hidden')) return
+    if (document.activeElement?.id === 'pdf-input') return
+    const btn = document.getElementById('analyse-btn') as HTMLButtonElement | null
+    if (btn && !btn.disabled) btn.click()
+  })
 })

@@ -53,7 +53,7 @@ describe('groupItemsIntoLines', () => {
     expect(groupItemsIntoLines(items)).toEqual(['OK'])
   })
 
-  it('property: every output line is a non-empty string', () => {
+  it('every output line is a non-empty string', () => {
     const itemArb = fc.array(
       fc.record({
         str: fc.string({ minLength: 1, maxLength: 20 }).filter((s) => s.trim().length > 0),
@@ -72,7 +72,7 @@ describe('groupItemsIntoLines', () => {
     )
   })
 
-  it('property: output line count is between 1 and item count', () => {
+  it('output line count is between 1 and item count', () => {
     const itemArb = fc.array(
       fc.record({
         str: fc.string({ minLength: 1, maxLength: 10 }).filter((s) => s.trim().length > 0),

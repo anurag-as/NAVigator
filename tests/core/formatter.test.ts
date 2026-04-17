@@ -6,9 +6,8 @@ function stripAndParse(formatted: string): number {
   return parseFloat(formatted.replace(/₹/g, '').replace(/,/g, '').trim())
 }
 
-// Feature: xirr-investment-dashboard, Property 6: INR formatting round-trip
 describe('formatINR', () => {
-  it('Property 6: INR formatting round-trip — format-strip-parse is idempotent', () => {
+  it('INR formatting round-trip — format-strip-parse is idempotent', () => {
     fc.assert(
       fc.property(fc.double({ min: 0, max: 1e12, noNaN: true, noDefaultInfinity: true }), (n) => {
         const once = stripAndParse(formatINR(n))
@@ -40,9 +39,8 @@ describe('formatINR', () => {
   })
 })
 
-// Feature: xirr-investment-dashboard, Property 5: XIRR percentage format
 describe('formatPct', () => {
-  it('Property 5: XIRR percentage format — output must match /^-?\\d+\\.\\d{2}%$/', () => {
+  it('XIRR percentage format — output must match /^-?\\d+\\.\\d{2}%$/', () => {
     fc.assert(
       fc.property(
         fc.double({ noNaN: true, noDefaultInfinity: true, min: -100, max: 100 }),

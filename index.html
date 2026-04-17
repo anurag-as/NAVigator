@@ -83,7 +83,7 @@
           </ol>
         </details>
 
-        <div class="upload-card" role="form" aria-label="Analyse CAS statement">
+        <form class="upload-card" aria-label="Analyse CAS statement" novalidate>
           <div class="upload-card-header">
             <div class="upload-card-icon" aria-hidden="true">
               <svg
@@ -122,8 +122,8 @@
             />
           </div>
 
-          <button id="analyse-btn" type="button" aria-live="polite">Calculate XIRR</button>
-        </div>
+          <button id="analyse-btn" type="submit" aria-live="polite">Calculate XIRR</button>
+        </form>
 
         <div id="status-bar" hidden role="status" aria-live="polite" aria-atomic="true">
           <span class="status-spinner" aria-hidden="true"></span>
@@ -171,8 +171,9 @@
             <span class="stat-card__value" aria-live="polite"></span>
           </div>
           <div class="stat-card" id="card-xirr" role="listitem">
-            <span class="stat-card__label">Overall XIRR</span>
+            <span class="stat-card__label">Overall XIRR (p.a.)</span>
             <span class="stat-card__value" aria-live="polite"></span>
+            <span class="stat-card__sub" aria-live="polite"></span>
           </div>
           <div class="stat-card" id="card-gainloss" role="listitem">
             <span class="stat-card__label">Gain / Loss</span>

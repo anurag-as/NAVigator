@@ -4,11 +4,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 function buildDOM() {
   document.body.innerHTML = `
     <section id="upload-view">
-      <div class="upload-card" role="form">
+      <form class="upload-card" aria-label="Analyse CAS statement" novalidate>
         <input type="file" id="pdf-input" />
         <input type="password" id="pdf-password" />
-        <button id="analyse-btn" type="button">Calculate XIRR</button>
-      </div>
+        <button id="analyse-btn" type="submit">Calculate XIRR</button>
+      </form>
       <div id="status-bar" hidden role="status">
         <span class="status-spinner" aria-hidden="true"></span>
         <span id="status-text"></span>
@@ -89,10 +89,9 @@ describe('main.ts — handleAnalyse with no file', () => {
   })
 
   it('shows an error in the status bar when no file is selected', async () => {
-    const btn = document.getElementById('analyse-btn') as HTMLButtonElement
-    btn.click()
+    const form = document.querySelector('.upload-card') as HTMLFormElement
+    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
 
-    // Allow microtasks to flush
     await Promise.resolve()
 
     const statusBar = document.getElementById('status-bar')!
