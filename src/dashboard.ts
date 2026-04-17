@@ -7,15 +7,15 @@ const XIRR_CLASSES = ['xirr-positive', 'xirr-negative', 'xirr-zero'] as const
 export function showUploadView(): void {
   const uploadView = document.getElementById('upload-view')
   const dashboardView = document.getElementById('dashboard-view')
-  if (uploadView) uploadView.style.display = ''
-  if (dashboardView) dashboardView.style.display = 'none'
+  if (uploadView) uploadView.removeAttribute('hidden')
+  if (dashboardView) dashboardView.setAttribute('hidden', '')
 }
 
 export function showDashboard(): void {
   const uploadView = document.getElementById('upload-view')
   const dashboardView = document.getElementById('dashboard-view')
-  if (uploadView) uploadView.style.display = 'none'
-  if (dashboardView) dashboardView.style.display = ''
+  if (uploadView) uploadView.setAttribute('hidden', '')
+  if (dashboardView) dashboardView.removeAttribute('hidden')
 }
 
 export function applyXirrClass(element: Element, xirr: number | null): void {
@@ -132,6 +132,11 @@ export function renderPortfolioGrid(portfolios: XIRRResult[]): void {
 export function renderDashboard(data: DashboardData): void {
   const grid = document.getElementById('portfolio-grid')
   if (grid) grid.innerHTML = ''
+
+  const periodEl = document.getElementById('dashboard-period')
+  if (periodEl && data.statementPeriod.from && data.statementPeriod.to) {
+    periodEl.textContent = `Statement period: ${data.statementPeriod.from} → ${data.statementPeriod.to}`
+  }
 
   destroyCharts()
   renderStatCards(data)

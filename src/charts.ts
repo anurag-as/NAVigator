@@ -1,8 +1,11 @@
 import type { XIRRResult } from './types'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const Chart: any
-type ChartInstance = ReturnType<typeof Chart>
+declare const Chart: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  new (...args: any[]): { destroy(): void }
+}
+
+type ChartInstance = InstanceType<typeof Chart>
 
 const ALLOCATION_PALETTE = [
   '#6366f1',

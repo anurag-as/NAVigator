@@ -1,13 +1,28 @@
 import { PDFLoadError, PDFPasswordError } from './types'
 
+const PDFJS_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs'
+const WORKER_CDN = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs'
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type PdfjsLib = any
+
+let pdfjsPromise: Promise<PdfjsLib> | null = null
+
+function getPdfjs(): Promise<PdfjsLib> {
+  if (!pdfjsPromise) {
+    pdfjsPromise = import(/* @vite-ignore */ PDFJS_CDN).then((mod) => {
+      const lib: PdfjsLib = mod.default ?? mod
+      lib.GlobalWorkerOptions.workerSrc = WORKER_CDN
+      return lib
+    })
+  }
+  return pdfjsPromise
+}
+
 export interface RawPage {
   pageNumber: number
   lines: string[]
 }
-
-// pdfjsLib is loaded from CDN as a global; declare it to satisfy TypeScript.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare const pdfjsLib: any
 
 interface LineGroup {
   y: number
@@ -15,6 +30,8 @@ interface LineGroup {
 }
 
 export async function loadAndExtract(buffer: ArrayBuffer, password: string): Promise<RawPage[]> {
+  const pdfjsLib = await getPdfjs()
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pdfDocument: any
 

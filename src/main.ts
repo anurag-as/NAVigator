@@ -1,3 +1,8 @@
+import './css/reset.css'
+import './css/variables.css'
+import './css/layout.css'
+import './css/components.css'
+import './css/animations.css'
 import { loadAndExtract } from './pdf-engine'
 import { parseCASStatement, buildCashFlowSeries } from './parser'
 import { computeXIRR, computeOverallXIRR } from './xirr'
@@ -7,16 +12,18 @@ import type { DashboardData, XIRRResult, PortfolioResult } from './types'
 
 function setStatus(message: string): void {
   const statusBar = document.getElementById('status-bar')
+  const statusText = document.getElementById('status-text')
   if (!statusBar) return
-  statusBar.textContent = message
+  if (statusText) statusText.textContent = message
   statusBar.classList.remove('status-bar--error', 'status-bar--hidden')
   statusBar.removeAttribute('hidden')
 }
 
 function clearStatus(): void {
   const statusBar = document.getElementById('status-bar')
+  const statusText = document.getElementById('status-text')
   if (!statusBar) return
-  statusBar.textContent = ''
+  if (statusText) statusText.textContent = ''
   statusBar.setAttribute('hidden', '')
   statusBar.classList.remove('status-bar--error')
 }

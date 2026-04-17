@@ -29,7 +29,13 @@ export function showStatusError(message: string): void {
   const statusBar = document.querySelector('#status-bar')
   if (!statusBar) return
 
-  statusBar.textContent = message
+  const statusText = document.getElementById('status-text')
+  if (statusText) {
+    statusText.textContent = message
+  } else {
+    statusBar.textContent = message
+  }
+
   statusBar.classList.remove('status-bar--hidden')
   statusBar.classList.add('status-bar--error')
   statusBar.removeAttribute('hidden')

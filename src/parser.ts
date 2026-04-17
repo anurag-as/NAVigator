@@ -170,6 +170,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
   let currentFolio = ''
   let currentAMC = ''
   let currentScheme: Scheme | null = null
+  let pendingDescription = ''
 
   for (let i = 0; i < allLines.length; i++) {
     const line = allLines[i].trim()
@@ -184,6 +185,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       currentFolio = folioMatch[1].replace(/[^A-Za-z0-9/]/g, '')
       currentAMC = findNextNonEmpty(allLines, i + 1) ?? ''
       inScheme = false
+      pendingDescription = ''
       continue
     }
 
@@ -208,6 +210,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         totalCostValue: 0,
       }
       inScheme = true
+      pendingDescription = ''
       continue
     }
 
@@ -223,7 +226,8 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         txRest = txRest.slice(0, closingIdx).trim()
       }
 
-      const tx = parseTransactionLine(txMatch[1], txRest, allLines, i)
+      const tx = parseTransactionLine(txMatch[1], txRest, allLines, i, pendingDescription)
+      pendingDescription = ''
       if (tx) currentScheme.transactions.push(tx)
 
       if (closingTail) {
@@ -256,6 +260,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
     const closingMatch = line.match(RE_CLOSING_UNITS)
     if (closingMatch) {
       currentScheme.closingUnits = normaliseAmount(closingMatch[1])
+      pendingDescription = ''
 
       const tcvMatch = line.match(RE_TOTAL_COST)
       if (tcvMatch) {
@@ -285,6 +290,13 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       continue
     }
 
+    const tcvMatch = line.match(RE_TOTAL_COST)
+    if (tcvMatch) {
+      currentScheme.totalCostValue = normaliseAmount(tcvMatch[1])
+      pendingDescription = ''
+      continue
+    }
+
     const valMatch = line.match(RE_VALUATION)
     if (valMatch) {
       try {
@@ -298,7 +310,18 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         currentScheme.closingUnits = normaliseAmount(navMatch[1])
         currentScheme.valuationNAV = normaliseAmount(navMatch[2])
       }
+      pendingDescription = ''
       continue
+    }
+
+    // Lines that are purely numeric (closing balance carry-forward) are not descriptions
+    if (/^[\d,]+\.\d+$/.test(line)) {
+      continue
+    }
+
+    // Accumulate as a pending description for the next date line
+    if (line.length > 3 && !/^[*]+$/.test(line)) {
+      pendingDescription = line
     }
   }
 

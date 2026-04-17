@@ -5,38 +5,96 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self'; worker-src blob:"
+      content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; worker-src blob:; connect-src 'self'"
     />
-    <title>NAVigator</title>
+    <title>NAVigator — Mutual Fund XIRR Dashboard</title>
     <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg" />
-    <link rel="stylesheet" href="/src/css/reset.css" />
-    <link rel="stylesheet" href="/src/css/variables.css" />
-    <link rel="stylesheet" href="/src/css/layout.css" />
-    <link rel="stylesheet" href="/src/css/components.css" />
-    <link rel="stylesheet" href="/src/css/animations.css" />
   </head>
   <body>
     <header>
-      <h1>NAVigator</h1>
-      <p>Your mutual fund XIRR dashboard — entirely in your browser.</p>
+      <div class="header-inner">
+        <h1>NAVigator</h1>
+        <p>Your mutual fund XIRR dashboard — entirely in your browser.</p>
+      </div>
     </header>
 
     <main>
+      <!-- ── Upload View ── -->
       <section id="upload-view">
         <div class="upload-card">
-          <label for="pdf-input">Consolidated Account Statement (PDF)</label>
-          <input type="file" accept=".pdf" id="pdf-input" />
+          <div class="upload-card-header">
+            <div class="upload-card-icon" aria-hidden="true">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.75"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m.75 12 3 3m0 0 3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                />
+              </svg>
+            </div>
+            <h2>Analyse your CAS statement</h2>
+            <p>Upload your CAMS or KFintech PDF to calculate XIRR across all your funds.</p>
+          </div>
 
-          <label for="pdf-password">PDF Password (if protected)</label>
-          <input type="password" id="pdf-password" autocomplete="current-password" />
+          <div class="form-field">
+            <label for="pdf-input">Consolidated Account Statement (PDF)</label>
+            <input type="file" accept=".pdf" id="pdf-input" />
+          </div>
 
-          <button id="analyse-btn" type="button">Analyse</button>
+          <div class="form-field">
+            <label for="pdf-password">PDF Password (leave blank if none)</label>
+            <input
+              type="password"
+              id="pdf-password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+            />
+          </div>
+
+          <button id="analyse-btn" type="button">Calculate XIRR</button>
         </div>
 
-        <div id="status-bar" hidden aria-live="polite"></div>
+        <div id="status-bar" hidden aria-live="polite">
+          <span class="status-spinner" aria-hidden="true"></span>
+          <span id="status-text"></span>
+        </div>
       </section>
 
+      <!-- ── Dashboard View ── -->
       <section id="dashboard-view" hidden>
+        <div class="dashboard-header">
+          <div>
+            <h2 class="dashboard-title">Portfolio Overview</h2>
+            <p class="dashboard-period" id="dashboard-period"></p>
+          </div>
+          <button id="back-btn" type="button">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3"
+              />
+            </svg>
+            Analyse Another PDF
+          </button>
+        </div>
+
+        <p class="section-heading">Summary</p>
         <div class="stat-cards-grid">
           <div class="stat-card" id="card-invested">
             <span class="stat-card__label">Total Invested</span>
@@ -57,6 +115,7 @@
           </div>
         </div>
 
+        <p class="section-heading">Charts</p>
         <div class="charts-row">
           <div class="chart-panel" id="allocation-chart-panel">
             <h2 class="chart-panel__title">Portfolio Allocation</h2>
@@ -67,7 +126,7 @@
             ></canvas>
           </div>
           <div class="chart-panel" id="returns-chart-panel">
-            <h2 class="chart-panel__title">Returns by Portfolio (XIRR %)</h2>
+            <h2 class="chart-panel__title">Returns by Fund (XIRR %)</h2>
             <canvas
               id="returns-chart"
               role="img"
@@ -76,22 +135,14 @@
           </div>
         </div>
 
+        <p class="section-heading">Fund Breakdown</p>
         <div id="portfolio-grid"></div>
-
-        <button id="back-btn" type="button">Analyse Another PDF</button>
       </section>
     </main>
 
     <footer>
-      <p>All processing happens locally in your browser. No data is uploaded.</p>
+      <p>All processing happens locally in your browser. Your financial data is never uploaded.</p>
     </footer>
-
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs"
-      type="module"
-      integrity="sha512-4iCVbAlp3QYmDeUEIj/CIlFSfY2h++C7g7H+e3M26ExvFXSn7sxIMbZ8jPyXgD///IsHG6Ttae/j2Txntlr2Wg=="
-      crossorigin="anonymous"
-    ></script>
 
     <script
       src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
