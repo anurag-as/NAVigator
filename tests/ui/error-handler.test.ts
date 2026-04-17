@@ -61,12 +61,18 @@ describe('classifyError', () => {
 
 describe('showStatusError', () => {
   let statusBar: HTMLElement
+  let statusText: HTMLElement
 
   beforeEach(() => {
     statusBar = document.createElement('div')
     statusBar.id = 'status-bar'
     statusBar.setAttribute('hidden', '')
     statusBar.classList.add('status-bar--hidden')
+
+    statusText = document.createElement('span')
+    statusText.id = 'status-text'
+    statusBar.appendChild(statusText)
+
     document.body.appendChild(statusBar)
   })
 
@@ -74,9 +80,9 @@ describe('showStatusError', () => {
     statusBar.remove()
   })
 
-  it('sets the text content of #status-bar to the provided message', () => {
+  it('sets the text content of #status-text to the provided message', () => {
     showStatusError('Something went wrong.')
-    expect(statusBar.textContent).toBe('Something went wrong.')
+    expect(statusText.textContent).toBe('Something went wrong.')
   })
 
   it('adds the status-bar--error CSS class', () => {

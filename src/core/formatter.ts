@@ -10,7 +10,7 @@ export function formatINR(amount: number): string {
 }
 
 export function formatPct(rate: number): string {
-  const pct = Object.is(rate, -0) ? 0 : rate * 100
+  const pct = Object.is(rate, -0) ? 0 : Math.round(rate * 100 * 10000) / 10000
   return `${pct.toFixed(2)}%`
 }
 

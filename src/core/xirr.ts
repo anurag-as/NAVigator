@@ -50,7 +50,7 @@ function newtonRaphson(cashFlows: CashFlow[], guess: number): number | null {
 
 export function computeXIRR(cashFlows: CashFlow[], guess = 0.1): number {
   validateCashFlows(cashFlows)
-  for (const g of [guess, -0.5, 0.5]) {
+  for (const g of [guess, 0.0, 0.9]) {
     const result = newtonRaphson(cashFlows, g)
     if (result !== null && isFinite(result)) return result
   }

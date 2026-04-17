@@ -10,11 +10,16 @@ let pdfjsPromise: Promise<PdfjsLib> | null = null
 
 function getPdfjs(): Promise<PdfjsLib> {
   if (!pdfjsPromise) {
-    pdfjsPromise = import(/* @vite-ignore */ PDFJS_CDN).then((mod) => {
-      const lib: PdfjsLib = mod.default ?? mod
-      lib.GlobalWorkerOptions.workerSrc = WORKER_CDN
-      return lib
-    })
+    pdfjsPromise = import(/* @vite-ignore */ PDFJS_CDN)
+      .then((mod) => {
+        const lib: PdfjsLib = mod.default ?? mod
+        lib.GlobalWorkerOptions.workerSrc = WORKER_CDN
+        return lib
+      })
+      .catch((err) => {
+        pdfjsPromise = null
+        throw err
+      })
   }
   return pdfjsPromise
 }
@@ -66,7 +71,7 @@ export async function loadAndExtract(buffer: ArrayBuffer, password: string): Pro
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function groupItemsIntoLines(items: any[]): string[] {
+export function groupItemsIntoLines(items: any[]): string[] {
   if (items.length === 0) return []
 
   const Y_TOLERANCE = 2
@@ -96,7 +101,7 @@ function groupItemsIntoLines(items: any[]): string[] {
   })
 }
 
-function isPasswordException(err: unknown): boolean {
+export function isPasswordException(err: unknown): boolean {
   if (err instanceof Error) {
     return err.name === 'PasswordException'
   }

@@ -87,6 +87,17 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
       cashFlows.push({ date: new Date(tx.date), amount: -Math.abs(tx.amount) })
     } else if (POSITIVE_TYPES.has(tx.type)) {
       cashFlows.push({ date: new Date(tx.date), amount: Math.abs(tx.amount) })
+    } else if (tx.type === TransactionType.DIVIDEND_REINVESTMENT) {
+      // Dividend reinvestments are excluded from XIRR cash flows: the reinvested
+      // amount stays in the fund and is already reflected in the closing NAV/units,
+      // so counting it as both an inflow and an outflow would double-count it.
+    } else {
+      // MISC and any future unrecognised types are excluded. Log a warning so
+      // misclassified transactions (e.g. bonus units, mergers) are not silently lost.
+      console.warn(
+        `[NAVigator] Excluding unrecognised transaction type "${tx.type}" ` +
+          `(${tx.date} ${tx.description} ₹${tx.amount}) from XIRR cash flows for "${scheme.name}".`,
+      )
     }
   }
 
@@ -163,6 +174,9 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
     }
     if (statementPeriod.from && investorName) break
   }
+
+  // If neither extraction path found a name, leave it as an empty string.
+  // Downstream consumers treat an empty investorName as "unknown" gracefully.
 
   const schemes: Scheme[] = []
   let inScheme = false

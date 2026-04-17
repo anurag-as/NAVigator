@@ -144,11 +144,6 @@ function handleAnalyse(): void {
     return
   }
 
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    showStatusError('Please select a PDF file.')
-    return
-  }
-
   runPipeline(file, passwordInput?.value ?? '')
 }
 

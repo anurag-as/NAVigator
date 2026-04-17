@@ -30,11 +30,7 @@ export function showStatusError(message: string): void {
   if (!statusBar) return
 
   const statusText = document.getElementById('status-text')
-  if (statusText) {
-    statusText.textContent = message
-  } else {
-    statusBar.textContent = message
-  }
+  if (statusText) statusText.textContent = message
 
   statusBar.classList.remove('status-bar--hidden')
   statusBar.classList.add('status-bar--error')
