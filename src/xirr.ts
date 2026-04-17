@@ -55,7 +55,7 @@ export function computeXIRR(cashFlows: CashFlow[], guess = 0.1): number {
     if (result !== null && isFinite(result)) return result
   }
   throw new XIRRConvergenceError(
-    'XIRR did not converge within 1000 iterations for any initial guess.',
+    `XIRR did not converge within ${MAX_ITER} iterations for any initial guess.`,
   )
 }
 

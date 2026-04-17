@@ -5,7 +5,8 @@ export interface RawPage {
   lines: string[]
 }
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// pdfjsLib is loaded from CDN as a global; declare it to satisfy TypeScript.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const pdfjsLib: any
 
 interface LineGroup {
@@ -13,25 +14,12 @@ interface LineGroup {
   texts: Array<{ x: number; text: string }>
 }
 
-/**
- * Loads a PDF from an ArrayBuffer, decrypts it with the given password,
- * and returns the extracted text lines for every page.
- *
- * @throws {PDFPasswordError} if the password is incorrect
- * @throws {PDFLoadError}     if the file cannot be opened for any other reason
- */
 export async function loadAndExtract(buffer: ArrayBuffer, password: string): Promise<RawPage[]> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pdfDocument: any
 
   try {
-    const loadingTask = pdfjsLib.getDocument({
-      data: buffer,
-      password,
-      onPassword: (updatePassword: (pwd: string) => void) => {
-        updatePassword('\x00__WRONG_PASSWORD__\x00')
-      },
-    })
-
+    const loadingTask = pdfjsLib.getDocument({ data: buffer, password })
     pdfDocument = await loadingTask.promise
   } catch (err: unknown) {
     if (isPasswordException(err)) {
@@ -60,6 +48,7 @@ export async function loadAndExtract(buffer: ArrayBuffer, password: string): Pro
   return pages
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function groupItemsIntoLines(items: any[]): string[] {
   if (items.length === 0) return []
 
@@ -89,7 +78,6 @@ function groupItemsIntoLines(items: any[]): string[] {
     return group.texts.map((t) => t.text).join(' ')
   })
 }
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 function isPasswordException(err: unknown): boolean {
   if (err instanceof Error) {

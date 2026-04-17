@@ -37,6 +37,47 @@
       </section>
 
       <section id="dashboard-view" hidden>
+        <div class="stat-cards-grid">
+          <div class="stat-card" id="card-invested">
+            <span class="stat-card__label">Total Invested</span>
+            <span class="stat-card__value"></span>
+          </div>
+          <div class="stat-card" id="card-current">
+            <span class="stat-card__label">Current Value</span>
+            <span class="stat-card__value"></span>
+          </div>
+          <div class="stat-card" id="card-xirr">
+            <span class="stat-card__label">Overall XIRR</span>
+            <span class="stat-card__value"></span>
+          </div>
+          <div class="stat-card" id="card-gainloss">
+            <span class="stat-card__label">Gain / Loss</span>
+            <span class="stat-card__value"></span>
+            <span class="stat-card__sub"></span>
+          </div>
+        </div>
+
+        <div class="charts-row">
+          <div class="chart-panel" id="allocation-chart-panel">
+            <h2 class="chart-panel__title">Portfolio Allocation</h2>
+            <canvas
+              id="allocation-chart"
+              role="img"
+              aria-label="Allocation chart showing portfolio distribution by current value"
+            ></canvas>
+          </div>
+          <div class="chart-panel" id="returns-chart-panel">
+            <h2 class="chart-panel__title">Returns by Portfolio (XIRR %)</h2>
+            <canvas
+              id="returns-chart"
+              role="img"
+              aria-label="Returns chart showing XIRR percentage for each portfolio"
+            ></canvas>
+          </div>
+        </div>
+
+        <div id="portfolio-grid"></div>
+
         <button id="back-btn" type="button">Analyse Another PDF</button>
       </section>
     </main>

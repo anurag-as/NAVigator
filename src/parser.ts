@@ -104,36 +104,27 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
 }
 
 const RE_FOLIO = /Folio\s*No[.:\s]+(\S+)/i
-// ISIN may have spaces between characters when extracted from PDF (e.g. "INF 846 K 01 DP 8")
-const RE_ISIN_SPACED = /ISIN\s*[:\-]?\s*((?:[A-Z0-9]\s*){12})/i
-const RE_ISIN = /ISIN\s*[:\-]?\s*([A-Z]{2}[A-Z0-9]{10})/i
+const RE_ISIN_SPACED = /ISIN\s*[:–-]?\s*((?:[A-Z0-9]\s*){12})/i
+const RE_ISIN = /ISIN\s*[:–-]?\s*([A-Z]{2}[A-Z0-9]{10})/i
 const RE_TRANSACTION_DATE = /^(\d{2}-[A-Za-z]{3}-\d{4})\s+(.*)/
-const RE_VALUATION = /Valuation\s+on\s+(\d{2}-[A-Za-z]{3}-\d{4})\s*[:\-]?\s*[₹]?([\d,]+\.?\d*)/i
+const RE_VALUATION = /Valuation\s+on\s+(\d{2}-[A-Za-z]{3}-\d{4})\s*[:–-]?\s*[₹]?([\d,]+\.?\d*)/i
 const RE_MARKET_VALUE =
-  /Market\s+Value\s+on\s+(\d{2}-[A-Za-z]{3}-\d{4})\s*[:\-]?\s*INR\s*([\d,]+\.?\d*)/i
-const RE_CLOSING_UNITS = /Closing\s+Unit\s+Balance\s*[:\-]?\s*([\d,]+\.?\d*)/i
-const RE_TOTAL_COST = /Total\s+Cost\s+Value\s*[:\-]?\s*([\d,]+\.?\d*)/i
+  /Market\s+Value\s+on\s+(\d{2}-[A-Za-z]{3}-\d{4})\s*[:–-]?\s*INR\s*([\d,]+\.?\d*)/i
+const RE_CLOSING_UNITS = /Closing\s+Unit\s+Balance\s*[:–-]?\s*([\d,]+\.?\d*)/i
+const RE_TOTAL_COST = /Total\s+Cost\s+Value\s*[:–-]?\s*([\d,]+\.?\d*)/i
 const RE_STATEMENT_PERIOD = /(\d{2}-[A-Za-z]{3}-\d{4})\s+[Tt]o\s+(\d{2}-[A-Za-z]{3}-\d{4})/i
-const RE_INVESTOR_NAME = /(?:Dear\s+|Name\s*[:\-]\s*)([A-Za-z][A-Za-z\s.'-]{1,60})/i
+const RE_INVESTOR_NAME = /(?:Dear\s+|Name\s*[:–-]\s*)([A-Za-z][A-Za-z\s.'-]{1,60})/i
 const RE_NAV_UNITS = /\(?([\d,]+\.?\d*)\s+[Uu]nits?\s+@\s+(?:NAV\s+)?[₹]?([\d,]+\.?\d*)\)?/i
-
-function compactISIN(raw: string): string {
-  return raw.replace(/\s+/g, '').toUpperCase()
-}
 
 function extractISIN(line: string): string | null {
   const compact = line.match(RE_ISIN)
   if (compact) return compact[1]
   const spaced = line.match(RE_ISIN_SPACED)
   if (spaced) {
-    const isin = compactISIN(spaced[1])
+    const isin = spaced[1].replace(/\s+/g, '').toUpperCase()
     if (isin.length === 12) return isin
   }
   return null
-}
-
-function lineHasISIN(line: string): boolean {
-  return extractISIN(line) !== null
 }
 
 /**
@@ -157,7 +148,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         try {
           statementPeriod = { from: normaliseDate(m[1]), to: normaliseDate(m[2]) }
         } catch {
-          // malformed date in header — skip
+          // malformed header date — skip
         }
       }
     }
@@ -200,10 +191,10 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       continue
     }
 
-    if (lineHasISIN(line)) {
+    if (extractISIN(line) !== null) {
       if (currentScheme) schemes.push(currentScheme)
       const isin = extractISIN(line)
-      const nameMatch = line.match(/^(.*?)\s*[-–]?\s*ISIN\s*[:\-]?\s*/i)
+      const nameMatch = line.match(/^(.*?)\s*[-–]?\s*ISIN\s*[:–-]?\s*/i)
       let schemeName = nameMatch ? nameMatch[1].trim() : line
       schemeName = schemeName.replace(/^[\w\s]+-\s*/, '').trim()
       if (schemeName.length < 5) schemeName = line.split(/ISIN/i)[0].trim()
@@ -228,8 +219,6 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
 
     const txMatch = line.match(RE_TRANSACTION_DATE)
     if (txMatch) {
-      // Some PDF extractors merge the closing-unit-balance onto the same line as
-      // the last transaction. Split it off before parsing.
       let txRest = txMatch[2]
       let closingTail = ''
       const closingIdx = txRest.search(/Closing\s+Unit\s+Balance/i)
@@ -252,12 +241,12 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
             try {
               currentScheme.valuationDate = normaliseDate(mvMatch2[1])
             } catch {
-              // malformed date — keep existing
+              // unparseable date — keep existing
             }
             currentScheme.valuationValue = normaliseAmount(mvMatch2[2])
           }
           const navOnMatch2 = closingTail.match(
-            /NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}\s*[:\-]?\s*INR\s*([\d,]+\.?\d*)/i,
+            /NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}\s*[:–-]?\s*INR\s*([\d,]+\.?\d*)/i,
           )
           if (navOnMatch2) currentScheme.valuationNAV = normaliseAmount(navOnMatch2[1])
           schemes.push(currentScheme)
@@ -272,8 +261,6 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
     if (closingMatch) {
       currentScheme.closingUnits = normaliseAmount(closingMatch[1])
 
-      // Total Cost Value is the PDF's own cost basis — reliable even when
-      // transaction history is incomplete (e.g. switch-in-only folios).
       const tcvMatch = line.match(RE_TOTAL_COST)
       if (tcvMatch) {
         currentScheme.totalCostValue = normaliseAmount(tcvMatch[1])
@@ -284,13 +271,13 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         try {
           currentScheme.valuationDate = normaliseDate(mvMatch[1])
         } catch {
-          // malformed date — keep existing
+          // unparseable date — keep existing
         }
         currentScheme.valuationValue = normaliseAmount(mvMatch[2])
       }
 
       const navOnMatch = line.match(
-        /NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}\s*[:\-]?\s*INR\s*([\d,]+\.?\d*)/i,
+        /NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}\s*[:–-]?\s*INR\s*([\d,]+\.?\d*)/i,
       )
       if (navOnMatch) {
         currentScheme.valuationNAV = normaliseAmount(navOnMatch[1])
@@ -307,7 +294,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       try {
         currentScheme.valuationDate = normaliseDate(valMatch[1])
       } catch {
-        // malformed date — keep existing
+        // unparseable date — keep existing
       }
       currentScheme.valuationValue = normaliseAmount(valMatch[2])
       const navMatch = line.match(RE_NAV_UNITS)
@@ -339,8 +326,7 @@ function findNextNonEmpty(lines: string[], startIdx: number): string | null {
 }
 
 // Parses right-to-left: trailing numeric tokens become amount/units/nav/balance columns;
-// everything to the left is the description. Parenthesised single-digit tokens like "(1)"
-// in SIP descriptions are excluded from numeric column detection.
+// everything to the left is the description.
 function parseTransactionLine(
   dateStr: string,
   rest: string,
@@ -349,8 +335,6 @@ function parseTransactionLine(
 ): Transaction | null {
   let source = rest.trim()
 
-  // If the line looks truncated, try appending the next line — but never a
-  // closing-unit-balance or valuation line, which are separate records.
   if (trailingNumberCount(source) < 3) {
     const nextLine = allLines[lineIdx + 1]?.trim() ?? ''
     if (
@@ -383,7 +367,7 @@ function parseTransactionLine(
 
   const description = tokens.slice(0, descEndIdx).join(' ').trim()
 
-  const amount = numericTokens.length >= 1 ? normaliseAmount(numericTokens[0]) : 0
+  const amount = normaliseAmount(numericTokens[0])
   const units = numericTokens.length >= 2 ? normaliseAmount(numericTokens[1]) : 0
   const nav = numericTokens.length >= 3 ? normaliseAmount(numericTokens[2]) : 0
 
