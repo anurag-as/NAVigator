@@ -4,7 +4,7 @@
  */
 export interface CashFlow {
   date: Date // parsed from ISO 8601 string
-  amount: number // negative for purchases, positive for inflows
+  amount: number
 }
 
 /** Transaction type classification for CAS statement entries. */
