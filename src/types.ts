@@ -82,10 +82,6 @@ export interface PortfolioResult {
   xirrResult: XIRRResult
 }
 
-// ---------------------------------------------------------------------------
-// Custom error classes
-// ---------------------------------------------------------------------------
-
 /** Thrown when PDF decryption fails due to wrong password. */
 export class PDFPasswordError extends Error {
   constructor(message: string) {

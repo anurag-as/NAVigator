@@ -1,3 +1,4 @@
 .kiro/
 node_modules/
 dist/
+.vscode/
