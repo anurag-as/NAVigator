@@ -3,7 +3,7 @@ import { XIRRConvergenceError, XIRRInsufficientDataError } from './types'
 
 const MAX_ITER = 1000
 const TOLERANCE = 1e-7
-const MS_PER_YEAR = 365.25 * 24 * 3600 * 1000
+const MS_PER_YEAR = 365 * 24 * 3600 * 1000
 
 export function validateCashFlows(cashFlows: CashFlow[]): void {
   if (cashFlows.length < 2) {
