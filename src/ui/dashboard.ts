@@ -219,7 +219,10 @@ export function renderDashboard(data: DashboardData): void {
   renderStatCards(data)
   renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder), true)
   updateSortButton(currentSortOrder)
-  renderAllocationChart('allocation-chart', data.portfolios.filter((p) => p.status === 'active'))
+  renderAllocationChart(
+    'allocation-chart',
+    data.portfolios.filter((p) => p.status === 'active'),
+  )
 
   const canvas = document.getElementById('allocation-chart')
   if (canvas) {

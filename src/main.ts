@@ -71,10 +71,7 @@ async function runPipeline(file: File, password: string): Promise<void> {
       // Only count actual purchase transactions as invested amount — not Switch Ins,
       // STT, TDS, or other non-cash-investment flows. This prevents double-counting
       // for routing vehicles (e.g. regular→direct switch folios).
-      const purchaseTypes = new Set([
-        'PURCHASE',
-        'PURCHASE_SIP',
-      ])
+      const purchaseTypes = new Set(['PURCHASE', 'PURCHASE_SIP'])
       const totalInvested =
         scheme.totalCostValue > 0
           ? scheme.totalCostValue

@@ -302,8 +302,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         if (mvNextMatch) {
           try {
             currentScheme.valuationDate = normaliseDate(mvNextMatch[1])
-          } catch {
-          }
+          } catch {}
           currentScheme.valuationValue = normaliseAmount(mvNextMatch[2])
         }
         const navNextMatch = nextLine.match(
