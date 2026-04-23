@@ -34,6 +34,7 @@ function makePortfolio(series: CashFlowSeries): PortfolioResult {
       gainLoss: 0,
       xirr: null,
       xirrError: null,
+      status: 'active',
     },
   }
 }
