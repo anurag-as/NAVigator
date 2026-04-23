@@ -217,7 +217,10 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       const isin = extractISIN(line)
       const nameMatch = line.match(/^(.*?)\s*[-–]?\s*ISIN\s*[:–-]?\s*/i)
       let schemeName = nameMatch ? nameMatch[1].trim() : line
-      schemeName = schemeName.replace(/^[\w\s]+-\s*/, '').trim()
+      // Strip a short RTA/advisor code prefix of the form "ABC123 - " (no spaces,
+      // 2–10 alphanumeric chars). The previous broad pattern /^[\w\s]+-\s*/ was
+      // incorrectly stripping multi-word fund names that contain a hyphen.
+      schemeName = schemeName.replace(/^[A-Z0-9]{2,10}\s*-\s*/i, '').trim()
       if (schemeName.length < 5) schemeName = line.split(/ISIN/i)[0].trim()
 
       currentScheme = {

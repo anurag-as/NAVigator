@@ -421,6 +421,60 @@ describe('parseCASStatement — Parser extracts all transactions', () => {
     ).toThrow('No portfolio data could be found')
   })
 
+  it('preserves full multi-word fund name containing hyphens', () => {
+    // Regression: the old /^[\w\s]+-\s*/ pattern stripped everything up to the
+    // last hyphen, turning "Axis Long Term Equity Fund - Direct Growth" into
+    // "Direct Growth".
+    const pages: RawPage[] = [
+      {
+        pageNumber: 1,
+        lines: [
+          'Consolidated Account Statement',
+          '01-Jan-2020 to 31-Dec-2023',
+          'Dear Test Investor',
+          '',
+          'Folio No: 12345678 / Test AMC',
+          'Test AMC Limited',
+          '',
+          'Axis Long Term Equity Fund - Direct Plan - Growth Option - ISIN: INF846K01EW2',
+          '',
+          '15-Jan-2021  Purchase  5,000.00  100.000  50.0000  100.000',
+          '',
+          'Closing Unit Balance: 100.000',
+          'Market Value on 31-Dec-2023: INR 6,000.00',
+        ],
+      },
+    ]
+    const { schemes } = parseCASStatement(pages)
+    expect(schemes[0].name).toContain('Axis Long Term Equity Fund')
+  })
+
+  it('strips a short RTA code prefix like "CAMS01 - " from scheme name', () => {
+    const pages: RawPage[] = [
+      {
+        pageNumber: 1,
+        lines: [
+          'Consolidated Account Statement',
+          '01-Jan-2020 to 31-Dec-2023',
+          'Dear Test Investor',
+          '',
+          'Folio No: 12345678 / Test AMC',
+          'Test AMC Limited',
+          '',
+          'CAMS01 - Test Fund Direct Growth - ISIN: INF123456789',
+          '',
+          '15-Jan-2021  Purchase  5,000.00  100.000  50.0000  100.000',
+          '',
+          'Closing Unit Balance: 100.000',
+          'Market Value on 31-Dec-2023: INR 6,000.00',
+        ],
+      },
+    ]
+    const { schemes } = parseCASStatement(pages)
+    expect(schemes[0].name).not.toMatch(/^CAMS01/)
+    expect(schemes[0].name).toContain('Test Fund Direct Growth')
+  })
+
   it('extracts valuationValue when NAV and Market Value are on the line after Closing Unit Balance', () => {
     const pages: RawPage[] = [
       {
