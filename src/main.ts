@@ -57,12 +57,30 @@ async function runPipeline(file: File, password: string): Promise<void> {
     for (const scheme of statement.schemes) {
       const cashFlowSeries = buildCashFlowSeries(scheme)
 
+      const isActive = scheme.valuationValue > 0
+
+      const hasTransferOut = scheme.transactions.some((tx) =>
+        /transfer\s*out|transfer\s*-\s*out|off.?market|switch\s*out/i.test(tx.description),
+      )
+      const status: XIRRResult['status'] = isActive
+        ? 'active'
+        : hasTransferOut
+          ? 'transferred'
+          : 'redeemed'
+
+      // Only count actual purchase transactions as invested amount — not Switch Ins,
+      // STT, TDS, or other non-cash-investment flows. This prevents double-counting
+      // for routing vehicles (e.g. regular→direct switch folios).
+      const purchaseTypes = new Set([
+        'PURCHASE',
+        'PURCHASE_SIP',
+      ])
       const totalInvested =
         scheme.totalCostValue > 0
           ? scheme.totalCostValue
-          : cashFlowSeries.cashFlows
-              .filter((cf) => cf.amount < 0)
-              .reduce((sum, cf) => sum + Math.abs(cf.amount), 0)
+          : scheme.transactions
+              .filter((tx) => purchaseTypes.has(tx.type))
+              .reduce((sum, tx) => sum + Math.abs(tx.amount), 0)
 
       const currentValue = scheme.valuationValue
 
@@ -85,6 +103,7 @@ async function runPipeline(file: File, password: string): Promise<void> {
           gainLoss: currentValue - totalInvested,
           xirr,
           xirrError,
+          status,
         },
       })
     }
@@ -98,9 +117,7 @@ async function runPipeline(file: File, password: string): Promise<void> {
       overallXirrError = classifyError(err)
     }
 
-    const activeResults = portfolioResults.filter((p) =>
-      p.cashFlowSeries.cashFlows.some((cf) => cf.amount > 0),
-    )
+    const activeResults = portfolioResults.filter((p) => p.xirrResult.status === 'active')
 
     const overallTotalInvested = activeResults.reduce(
       (sum, p) => sum + p.xirrResult.totalInvested,
@@ -116,6 +133,7 @@ async function runPipeline(file: File, password: string): Promise<void> {
       gainLoss: overallCurrentValue - overallTotalInvested,
       xirr: overallXirr,
       xirrError: overallXirrError,
+      status: 'active',
     }
 
     const dashboardData: DashboardData = {

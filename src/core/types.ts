@@ -58,6 +58,7 @@ export interface XIRRResult {
   gainLoss: number
   xirr: number | null
   xirrError: string | null
+  status: 'active' | 'transferred' | 'redeemed'
 }
 
 export interface DashboardData {

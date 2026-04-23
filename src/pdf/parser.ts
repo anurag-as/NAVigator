@@ -361,7 +361,13 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
     )
   }
 
-  return { statementPeriod, investorName, schemes }
+  // Merge transferred folios: when a scheme has a Transfer In transaction, find
+  // the matching source folio (same ISIN, zero closing value, Transfer Out) and
+  // prepend its purchase history. This gives the receiving folio the full
+  // investment timeline needed for accurate XIRR calculation.
+  const mergedSchemes = mergeTransferredFolios(schemes)
+
+  return { statementPeriod, investorName, schemes: mergedSchemes }
 }
 
 function findNextNonEmpty(lines: string[], startIdx: number): string | null {
@@ -452,4 +458,87 @@ function trailingNumberCount(text: string): number {
     }
   }
   return count
+}
+
+/**
+ * Merges transferred folios into their receiving folios.
+ *
+ * When an investor consolidates folios, the CAS contains two scheme entries
+ * for the same ISIN:
+ *   - Source folio: all original purchases, Transfer Out as last transaction,
+ *     zero closing balance.
+ *   - Receiving folio: Transfer In as first transaction, subsequent purchases,
+ *     active closing balance.
+ *
+ * For XIRR to be accurate, the receiving folio needs the full purchase history
+ * from the source folio. This function prepends the source folio's non-transfer
+ * transactions onto the receiving folio and marks the source folio for removal.
+ *
+ * The totalCostValue of the receiving folio is also updated to include the
+ * source folio's cost if the receiving folio's totalCostValue doesn't already
+ * account for it (i.e. when the source folio has totalCostValue = 0 in the PDF).
+ */
+function mergeTransferredFolios(schemes: Scheme[]): Scheme[] {
+  const RE_TRANSFER_IN = /transfer\s*in/i
+  const RE_TRANSFER_OUT = /transfer\s*out|transfer\s*-\s*out|off.?market/i
+
+  // Index source folios: zero closing value, same ISIN, has a transfer-out tx
+  const sourceByIsin = new Map<string, Scheme>()
+  for (const scheme of schemes) {
+    if (scheme.valuationValue === 0 && scheme.isin) {
+      const hasTransferOut = scheme.transactions.some((tx) => RE_TRANSFER_OUT.test(tx.description))
+      if (hasTransferOut) {
+        // If multiple source folios exist for the same ISIN, keep the one
+        // with the most transactions (most complete history).
+        const existing = sourceByIsin.get(scheme.isin)
+        if (!existing || scheme.transactions.length > existing.transactions.length) {
+          sourceByIsin.set(scheme.isin, scheme)
+        }
+      }
+    }
+  }
+
+  if (sourceByIsin.size === 0) return schemes
+
+  const absorbed = new Set<Scheme>()
+  const result: Scheme[] = []
+
+  for (const scheme of schemes) {
+    if (absorbed.has(scheme)) continue
+
+    if (scheme.isin && scheme.valuationValue > 0) {
+      const hasTransferIn = scheme.transactions.some((tx) => RE_TRANSFER_IN.test(tx.description))
+      if (hasTransferIn) {
+        const source = sourceByIsin.get(scheme.isin)
+        if (source && source !== scheme) {
+          // Prepend source folio's purchase/non-transfer transactions
+          const sourceTxs = source.transactions.filter(
+            (tx) => !RE_TRANSFER_OUT.test(tx.description) && !RE_TRANSFER_IN.test(tx.description),
+          )
+          // Remove the Transfer In entry from the receiving folio — it's not a
+          // real cash flow, just an accounting entry.
+          const receivingTxs = scheme.transactions.filter(
+            (tx) => !RE_TRANSFER_IN.test(tx.description),
+          )
+          const merged: Scheme = {
+            ...scheme,
+            transactions: [...sourceTxs, ...receivingTxs],
+            // Use the receiving folio's totalCostValue if it already reflects
+            // the full cost (i.e. > source cost), otherwise sum both.
+            totalCostValue:
+              scheme.totalCostValue >= source.totalCostValue
+                ? scheme.totalCostValue
+                : scheme.totalCostValue + source.totalCostValue,
+          }
+          absorbed.add(source)
+          result.push(merged)
+          continue
+        }
+      }
+    }
+
+    result.push(scheme)
+  }
+
+  return result
 }
