@@ -98,14 +98,15 @@ async function runPipeline(file: File, password: string): Promise<void> {
       overallXirrError = classifyError(err)
     }
 
-    const overallTotalInvested = portfolioResults.reduce(
+    const activeResults = portfolioResults.filter((p) =>
+      p.cashFlowSeries.cashFlows.some((cf) => cf.amount > 0),
+    )
+
+    const overallTotalInvested = activeResults.reduce(
       (sum, p) => sum + p.xirrResult.totalInvested,
       0,
     )
-    const overallCurrentValue = portfolioResults.reduce(
-      (sum, p) => sum + p.xirrResult.currentValue,
-      0,
-    )
+    const overallCurrentValue = activeResults.reduce((sum, p) => sum + p.xirrResult.currentValue, 0)
 
     const overall: XIRRResult = {
       schemeId: '__overall__',
