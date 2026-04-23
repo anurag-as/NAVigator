@@ -12,6 +12,7 @@ function makeXirrResult(overrides: Partial<XIRRResult> = {}): XIRRResult {
     gainLoss: 2000,
     xirr: 0.15,
     xirrError: null,
+    status: 'active',
     ...overrides,
   }
 }

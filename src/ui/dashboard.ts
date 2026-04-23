@@ -137,12 +137,51 @@ function buildPortfolioCard(portfolio: XIRRResult, animate: boolean): HTMLElemen
   return card
 }
 
+function buildInactiveCard(portfolio: XIRRResult): HTMLElement {
+  const card = document.createElement('div')
+  card.className = 'portfolio-card portfolio-card--inactive'
+
+  const nameEl = document.createElement('h3')
+  nameEl.className = 'portfolio-card__name'
+  nameEl.textContent = portfolio.schemeName
+  card.appendChild(nameEl)
+
+  const badge = document.createElement('span')
+  badge.className = 'portfolio-card__status-badge'
+  badge.textContent = portfolio.status === 'transferred' ? 'Transferred' : 'Exited'
+  card.appendChild(badge)
+
+  return card
+}
+
 export function renderPortfolioGrid(portfolios: XIRRResult[], animate = false): void {
   const grid = document.getElementById('portfolio-grid')
   if (!grid) return
   grid.innerHTML = ''
-  for (const portfolio of portfolios) {
+
+  const active = portfolios.filter((p) => p.status === 'active')
+  const inactive = portfolios.filter((p) => p.status !== 'active')
+
+  for (const portfolio of active) {
     grid.appendChild(buildPortfolioCard(portfolio, animate))
+  }
+
+  if (inactive.length > 0) {
+    const details = document.createElement('details')
+    details.className = 'inactive-schemes'
+
+    const summary = document.createElement('summary')
+    summary.className = 'inactive-schemes__summary'
+    summary.textContent = `${inactive.length} transferred / exited fund${inactive.length !== 1 ? 's' : ''}`
+    details.appendChild(summary)
+
+    const inactiveGrid = document.createElement('div')
+    inactiveGrid.className = 'inactive-schemes__grid'
+    for (const portfolio of inactive) {
+      inactiveGrid.appendChild(buildInactiveCard(portfolio))
+    }
+    details.appendChild(inactiveGrid)
+    grid.appendChild(details)
   }
 }
 
@@ -180,7 +219,7 @@ export function renderDashboard(data: DashboardData): void {
   renderStatCards(data)
   renderPortfolioGrid(sortPortfolios(currentPortfolios, currentSortOrder), true)
   updateSortButton(currentSortOrder)
-  renderAllocationChart('allocation-chart', data.portfolios)
+  renderAllocationChart('allocation-chart', data.portfolios.filter((p) => p.status === 'active'))
 
   const canvas = document.getElementById('allocation-chart')
   if (canvas) {
