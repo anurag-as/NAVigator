@@ -89,6 +89,13 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
   const cashFlows: CashFlow[] = []
   const valuationTime = new Date(scheme.valuationDate).getTime()
 
+  if (isNaN(valuationTime)) {
+    throw new Error(
+      `Scheme "${scheme.name}" has an invalid or missing valuationDate: "${scheme.valuationDate}". ` +
+        'The statement period could not be parsed from the PDF.',
+    )
+  }
+
   for (const tx of scheme.transactions) {
     const txTime = new Date(tx.date).getTime()
 
@@ -157,7 +164,7 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
   let investorName = ''
 
   let emailLineIdx = -1
-  for (let i = 0; i < Math.min(60, allLines.length); i++) {
+  for (let i = 0; i < Math.min(120, allLines.length); i++) {
     const line = allLines[i].trim()
     if (!statementPeriod.from) {
       const m = line.match(RE_STATEMENT_PERIOD)
@@ -182,6 +189,8 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
       const m = line.match(RE_INVESTOR_NAME)
       if (m) investorName = m[1].trim()
     }
+    // Only stop early once both fields are found; a long address block must not
+    // prevent the statement period from being located.
     if (statementPeriod.from && investorName) break
   }
 

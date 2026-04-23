@@ -2,7 +2,7 @@ import type { CashFlow, PortfolioResult } from './types'
 import { XIRRConvergenceError, XIRRInsufficientDataError } from './types'
 
 const MAX_ITER = 1000
-const TOLERANCE = 1e-7
+const TOLERANCE = 1e-10
 const MS_PER_YEAR = 365 * 24 * 3600 * 1000
 
 export function validateCashFlows(cashFlows: CashFlow[]): void {
