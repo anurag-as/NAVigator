@@ -239,6 +239,18 @@ describe('computeXIRR — known reference values', () => {
     expect(rate).toBeCloseTo(-0.1056, 2)
   })
 
+  it('Series 6: deeply negative return (~-33% annualised) converges without throwing', () => {
+    // Invest 100,000 on 2020-01-01, receive back only 30,000 on 2023-01-01
+    // True XIRR is approximately -33% annualised — requires a negative initial guess to converge
+    const cashFlows: CashFlow[] = [cf('2020-01-01', -100000), cf('2023-01-01', 30000)]
+    let rate: number
+    expect(() => {
+      rate = computeXIRR(cashFlows)
+    }).not.toThrow()
+    expect(rate!).toBeLessThan(-0.3)
+    expect(Math.abs(evaluateNPV(cashFlows, rate!))).toBeLessThan(1e-4)
+  })
+
   it('Series 4: multiple purchases with partial redemption', () => {
     const cashFlows: CashFlow[] = [
       cf('2019-01-01', -5000),
