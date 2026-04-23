@@ -202,10 +202,10 @@ describe('computeOverallXIRR — Overall XIRR equals merged series XIRR', () => 
 
 describe('computeXIRR — known reference values', () => {
   it('Series 1: single-year lump sum ~10% return', () => {
-    // Invest 10,000 on 2020-01-01, receive 11,000 on 2021-01-01
-    // 365/365.25 days → rate is slightly below 10%
-    const cashFlows: CashFlow[] = [cf('2020-01-01', -10000), cf('2021-01-01', 11000)]
-    expect(computeXIRR(cashFlows)).toBeCloseTo(0.09973, 3)
+    // Invest 10,000 on 2021-01-01, receive 11,000 on 2022-01-01
+    // Exactly 365 days (non-leap year span) → rate is exactly 10% under the Excel 365-day convention
+    const cashFlows: CashFlow[] = [cf('2021-01-01', -10000), cf('2022-01-01', 11000)]
+    expect(computeXIRR(cashFlows)).toBeCloseTo(0.1, 4)
   })
 
   it('Series 2: monthly SIP with positive return', () => {
