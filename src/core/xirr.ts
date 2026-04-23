@@ -60,7 +60,11 @@ export function computeXIRR(cashFlows: CashFlow[], guess = 0.1): number {
 }
 
 export function computeOverallXIRR(portfolios: PortfolioResult[]): number {
+  // Exclude schemes with no terminal positive cash flow (e.g. fully transferred-out
+  // folios where valuationValue = 0). Their orphaned negative flows — purchases with
+  // no corresponding closing value — corrupt the NPV and produce nonsensical rates.
   const merged: CashFlow[] = portfolios
+    .filter((p) => p.cashFlowSeries.cashFlows.some((cf) => cf.amount > 0))
     .flatMap((p) => p.cashFlowSeries.cashFlows)
     .sort((a, b) => a.date.getTime() - b.date.getTime())
   return computeXIRR(merged)
