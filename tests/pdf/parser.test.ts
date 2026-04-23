@@ -155,6 +155,12 @@ describe('buildCashFlowSeries — Cash flow sign convention', () => {
     )
   })
 
+  it('throws when valuationDate is empty (statement period not parsed)', () => {
+    expect(() =>
+      buildCashFlowSeries(makeScheme({ valuationDate: '', valuationValue: 10000 })),
+    ).toThrow('invalid or missing valuationDate')
+  })
+
   it('terminal valuation is always a positive cash flow', () => {
     fc.assert(
       fc.property(valuationArb, (val) => {
@@ -419,6 +425,34 @@ describe('parseCASStatement — Parser extracts all transactions', () => {
     expect(() =>
       parseCASStatement([{ pageNumber: 1, lines: ['This is not a CAS statement'] }]),
     ).toThrow('No portfolio data could be found')
+  })
+
+  it('finds statement period when it appears after line 60 due to a long address block', () => {
+    // Simulate a CAMS statement where a long address block pushes the period past line 60
+    const lines: string[] = [
+      'Consolidated Account Statement',
+      'Email Id: test@example.com',
+      'Test Investor',
+      // 60 lines of address padding
+      ...Array.from({ length: 60 }, (_, i) => `Address line ${i + 1}`),
+      // Statement period appears at line ~63
+      '01-Jan-2020 to 31-Dec-2023',
+      '',
+      'Folio No: 12345678 / Test AMC',
+      'Test AMC Limited',
+      '',
+      'Test Fund Direct Growth - ISIN: INF123456789 Advisor: DIRECT',
+      '',
+      '15-Jan-2021  Purchase  5,000.00  100.000  50.0000  100.000',
+      '',
+      'Closing Unit Balance: 100.000',
+      'Market Value on 31-Dec-2023: INR 6,000.00',
+    ]
+    const { statementPeriod, schemes } = parseCASStatement([{ pageNumber: 1, lines }])
+    expect(statementPeriod.from).toBe('2020-01-01')
+    expect(statementPeriod.to).toBe('2023-12-31')
+    // valuationDate should be set correctly, not empty
+    expect(schemes[0].valuationDate).toBe('2023-12-31')
   })
 
   it('preserves full multi-word fund name containing hyphens', () => {
