@@ -226,6 +226,43 @@ describe('buildCashFlowSeries — Cash flow sign convention', () => {
     ).toBeGreaterThan(0)
   })
 
+  it('switch-in-merger is negative, switch-out-merger is positive', () => {
+    const series = buildCashFlowSeries(
+      makeScheme({
+        transactions: [
+          makeTx(TransactionType.SWITCH_IN_MERGER, 5000, '2022-01-01'),
+          makeTx(TransactionType.SWITCH_OUT_MERGER, 5000, '2022-01-02'),
+        ],
+        valuationValue: 5500,
+        valuationDate: '2023-01-01',
+      }),
+    )
+    expect(
+      series.cashFlows.find((cf) => cf.date.getTime() === new Date('2022-01-01').getTime())?.amount,
+    ).toBeLessThan(0)
+    expect(
+      series.cashFlows.find((cf) => cf.date.getTime() === new Date('2022-01-02').getTime())?.amount,
+    ).toBeGreaterThan(0)
+  })
+
+  it('segregation and reversal are excluded from cash flows', () => {
+    const series = buildCashFlowSeries(
+      makeScheme({
+        transactions: [
+          makeTx(TransactionType.PURCHASE, 10000, '2021-01-01'),
+          makeTx(TransactionType.SEGREGATION, 1000, '2022-01-01'),
+          makeTx(TransactionType.REVERSAL, 500, '2022-06-01'),
+        ],
+        valuationValue: 9000,
+        valuationDate: '2023-01-01',
+      }),
+    )
+    // Only the PURCHASE and terminal valuation should appear — 2 cash flows
+    expect(series.cashFlows).toHaveLength(2)
+    expect(series.cashFlows[0].amount).toBeLessThan(0)
+    expect(series.cashFlows[1].amount).toBeGreaterThan(0)
+  })
+
   it('cash flows are sorted ascending by date', () => {
     const series = buildCashFlowSeries(
       makeScheme({
@@ -503,5 +540,32 @@ describe('classifyTransaction', () => {
 
   it('prioritises DIVIDEND_REINVESTMENT over DIVIDEND_PAYOUT', () => {
     expect(classifyTransaction('Dividend Reinvestment')).toBe(TransactionType.DIVIDEND_REINVESTMENT)
+  })
+
+  it('classifies merger switch variants', () => {
+    expect(classifyTransaction('Switch In Merger')).toBe(TransactionType.SWITCH_IN_MERGER)
+    expect(classifyTransaction('Switch Out Merger')).toBe(TransactionType.SWITCH_OUT_MERGER)
+    expect(classifyTransaction('switch in merger')).toBe(TransactionType.SWITCH_IN_MERGER)
+    expect(classifyTransaction('switch out merger')).toBe(TransactionType.SWITCH_OUT_MERGER)
+  })
+
+  it('prioritises SWITCH_IN_MERGER over SWITCH_IN', () => {
+    expect(classifyTransaction('Switch In Merger')).toBe(TransactionType.SWITCH_IN_MERGER)
+    expect(classifyTransaction('Switch In')).toBe(TransactionType.SWITCH_IN)
+  })
+
+  it('prioritises SWITCH_OUT_MERGER over SWITCH_OUT', () => {
+    expect(classifyTransaction('Switch Out Merger')).toBe(TransactionType.SWITCH_OUT_MERGER)
+    expect(classifyTransaction('Switch Out')).toBe(TransactionType.SWITCH_OUT)
+  })
+
+  it('classifies segregation variants', () => {
+    expect(classifyTransaction('Segregation')).toBe(TransactionType.SEGREGATION)
+    expect(classifyTransaction('Segregated Portfolio')).toBe(TransactionType.SEGREGATION)
+  })
+
+  it('classifies reversal variants', () => {
+    expect(classifyTransaction('Reversal')).toBe(TransactionType.REVERSAL)
+    expect(classifyTransaction('Purchase Reversal')).toBe(TransactionType.REVERSAL)
   })
 })

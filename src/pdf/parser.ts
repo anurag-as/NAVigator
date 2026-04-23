@@ -41,6 +41,8 @@ export function normaliseAmount(raw: string): number {
 
 const CLASSIFICATION_RULES: Array<{ pattern: RegExp; type: TransactionType }> = [
   { pattern: /\bsip\b/i, type: TransactionType.PURCHASE_SIP },
+  { pattern: /\bswitch\s*in\s*merger\b/i, type: TransactionType.SWITCH_IN_MERGER },
+  { pattern: /\bswitch\s*out\s*merger\b/i, type: TransactionType.SWITCH_OUT_MERGER },
   { pattern: /\bswitch\s*in\b/i, type: TransactionType.SWITCH_IN },
   { pattern: /\bswitch\s*out\b/i, type: TransactionType.SWITCH_OUT },
   { pattern: /\bdividend\s*reinvest/i, type: TransactionType.DIVIDEND_REINVESTMENT },
@@ -51,6 +53,8 @@ const CLASSIFICATION_RULES: Array<{ pattern: RegExp; type: TransactionType }> = 
   { pattern: /\bstamp\s*duty\b/i, type: TransactionType.STAMP_DUTY_TAX },
   { pattern: /\btds\b/i, type: TransactionType.TDS_TAX },
   { pattern: /\bstt\b/i, type: TransactionType.STT_TAX },
+  { pattern: /\bsegregat/i, type: TransactionType.SEGREGATION },
+  { pattern: /\breversal\b/i, type: TransactionType.REVERSAL },
   { pattern: /\bpurchase\b/i, type: TransactionType.PURCHASE },
   { pattern: /\bbuy\b/i, type: TransactionType.PURCHASE },
   { pattern: /\bnew\s*fund\s*offer\b/i, type: TransactionType.PURCHASE },
@@ -68,6 +72,7 @@ const NEGATIVE_TYPES = new Set<TransactionType>([
   TransactionType.PURCHASE,
   TransactionType.PURCHASE_SIP,
   TransactionType.SWITCH_IN,
+  TransactionType.SWITCH_IN_MERGER,
   TransactionType.STAMP_DUTY_TAX,
   TransactionType.TDS_TAX,
   TransactionType.STT_TAX,
@@ -76,6 +81,7 @@ const NEGATIVE_TYPES = new Set<TransactionType>([
 const POSITIVE_TYPES = new Set<TransactionType>([
   TransactionType.REDEMPTION,
   TransactionType.SWITCH_OUT,
+  TransactionType.SWITCH_OUT_MERGER,
   TransactionType.DIVIDEND_PAYOUT,
 ])
 
@@ -96,6 +102,11 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
       cashFlows.push({ date: new Date(tx.date), amount: Math.abs(tx.amount) })
     } else if (tx.type === TransactionType.DIVIDEND_REINVESTMENT) {
       // Excluded: reinvested amount is already reflected in closing NAV/units.
+    } else if (tx.type === TransactionType.SEGREGATION) {
+      // Excluded: side-pocket units are segregated, not a cash movement.
+    } else if (tx.type === TransactionType.REVERSAL) {
+      // Excluded: reversals cancel a prior transaction; the original is already
+      // absent or offset in the statement's running balance.
     }
     // MISC and unrecognised types are excluded from XIRR cash flows.
   }
