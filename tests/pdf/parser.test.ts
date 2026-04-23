@@ -383,6 +383,35 @@ describe('parseCASStatement — Parser extracts all transactions', () => {
       parseCASStatement([{ pageNumber: 1, lines: ['This is not a CAS statement'] }]),
     ).toThrow('No portfolio data could be found')
   })
+
+  it('extracts valuationValue when NAV and Market Value are on the line after Closing Unit Balance', () => {
+    const pages: RawPage[] = [
+      {
+        pageNumber: 1,
+        lines: [
+          'Consolidated Account Statement',
+          '01-Jan-2020 to 31-Dec-2026',
+          'Dear Test Investor',
+          '',
+          'Folio No: 12345678 / 10',
+          'Test AMC Limited',
+          '',
+          'Test Fund Direct Growth - ISIN: INF123456789 Advisor: DIRECT',
+          '',
+          '15-Jan-2021  Purchase  5,000.00  100.000  50.0000  100.000',
+          '',
+          'Closing Unit Balance: 100.000    Total Cost Value: 5,000.00',
+          'NAV on 22-Apr-2026: INR 60.0000    Market Value on 22-Apr-2026: INR 6,000.00',
+        ],
+      },
+    ]
+    const { schemes } = parseCASStatement(pages)
+    expect(schemes).toHaveLength(1)
+    expect(schemes[0].valuationValue).toBeCloseTo(6000)
+    expect(schemes[0].valuationNAV).toBeCloseTo(60)
+    expect(schemes[0].totalCostValue).toBeCloseTo(5000)
+    expect(schemes[0].closingUnits).toBeCloseTo(100)
+  })
 })
 
 describe('normaliseAmount', () => {

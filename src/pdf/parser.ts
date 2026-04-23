@@ -109,7 +109,7 @@ export function buildCashFlowSeries(scheme: Scheme): CashFlowSeries {
   return { schemeId: scheme.name, cashFlows }
 }
 
-const RE_FOLIO = /Folio\s*No[.:\s]+(\S+)/i
+const RE_FOLIO = /^Folio\s*No[.:\s]+(\S+)/i
 const RE_ISIN_SPACED = /ISIN\s*[:–-]?\s*((?:[A-Z0-9]\s*){12})/i
 const RE_ISIN = /ISIN\s*[:–-]?\s*([A-Z]{2}[A-Z0-9]{10})/i
 const RE_TRANSACTION_DATE = /^(\d{2}-[A-Za-z]{3}-\d{4})\s+(.*)/
@@ -296,6 +296,24 @@ export function parseCASStatement(pages: RawPage[]): ParsedStatement {
         currentScheme.valuationNAV = normaliseAmount(navOnMatch[1])
       }
 
+      if (currentScheme.valuationValue === 0) {
+        const nextLine = findNextNonEmpty(allLines, i + 1) ?? ''
+        const mvNextMatch = nextLine.match(RE_MARKET_VALUE)
+        if (mvNextMatch) {
+          try {
+            currentScheme.valuationDate = normaliseDate(mvNextMatch[1])
+          } catch {
+          }
+          currentScheme.valuationValue = normaliseAmount(mvNextMatch[2])
+        }
+        const navNextMatch = nextLine.match(
+          /NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}\s*[:–-]?\s*INR\s*([\d,]+\.?\d*)/i,
+        )
+        if (navNextMatch) {
+          currentScheme.valuationNAV = normaliseAmount(navNextMatch[1])
+        }
+      }
+
       schemes.push(currentScheme)
       currentScheme = null
       inScheme = false
@@ -370,7 +388,8 @@ function parseTransactionLine(
       !nextLine.match(/^\d{2}-[A-Za-z]{3}-\d{4}/) &&
       !nextLine.match(/Closing\s+Unit\s+Balance/i) &&
       !nextLine.match(/Valuation\s+on/i) &&
-      !nextLine.match(/Total\s+Cost\s+Value/i)
+      !nextLine.match(/Total\s+Cost\s+Value/i) &&
+      !nextLine.match(/NAV\s+on\s+\d{2}-[A-Za-z]{3}-\d{4}/i)
     ) {
       source = source + ' ' + nextLine
     }
